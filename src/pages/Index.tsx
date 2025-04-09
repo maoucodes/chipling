@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, FC } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
 import SearchInput from '@/components/SearchInput';
