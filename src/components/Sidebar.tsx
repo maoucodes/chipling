@@ -39,7 +39,7 @@ const Sidebar: FC = () => {
         </div>
 
         <nav className="mt-6 px-2">
-          <SidebarItem icon={<BookMarkIcon className="w-5 h-5" />} label="Notes" />
+          <SidebarItem icon={<BookmarkIcon className="w-5 h-5" />} label="Notes" />
           <SidebarItem icon={<HistoryIcon className="w-5 h-5" />} label="Rabbit Holes" />
         </nav>
       </div>
