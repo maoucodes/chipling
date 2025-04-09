@@ -1,4 +1,3 @@
-
 import { useState, FC } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
@@ -148,7 +147,6 @@ const Index = () => {
     );
   };
   
-  // Render learning path modal if shown
   const renderLearningPath = () => {
     if (showLearningPath && modules.length > 0) {
       return (
@@ -163,7 +161,6 @@ const Index = () => {
     return null;
   };
   
-  // Determine the current module for the sidebar
   const currentModule = selectedTopic ? modules[selectedTopic.moduleIndex] : null;
   const currentTopicIndices = selectedTopic ? { moduleIndex: selectedTopic.moduleIndex, topicIndex: selectedTopic.topicIndex } : null;
   
@@ -198,7 +195,7 @@ const PopularTopic: FC<PopularTopicProps> = ({ icon, title, onClick }) => {
   );
 };
 
-const MapIcon = ({ className }: { className?: string }) => (
+const CustomMapIcon = ({ className }: { className?: string }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     width="24" 
