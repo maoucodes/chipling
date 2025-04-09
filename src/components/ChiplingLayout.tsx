@@ -2,6 +2,7 @@
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import ChatPanel from './ChatPanel';
 
 interface ChiplingLayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ const ChiplingLayout = ({ children }: ChiplingLayoutProps) => {
           {children}
         </main>
       </div>
+      <ChatPanel />
     </div>
   );
 };
