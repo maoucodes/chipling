@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,19 +36,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -98,4 +92,16 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.chipling-card {
+  @apply bg-card/50 backdrop-blur-sm border border-border/50 rounded-md p-4 hover:bg-card/80 transition-all duration-200 cursor-pointer;
+}
+
+.chipling-sidebar {
+  @apply w-64 h-screen bg-sidebar/80 backdrop-blur-sm border-r border-border/50 flex flex-col;
+}
+
+html, body {
+  @apply bg-[#1A1F2C] text-white dark;
 }
