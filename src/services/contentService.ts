@@ -9,21 +9,28 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
       
       // Create a structured prompt to generate modules
       const prompt = `Generate a structured learning path for the topic: "${searchQuery}".
-      Please provide 3-5 topics as part of this module, with each topic having:
+      Please provide 3 modules (chapters), with each module having:
+      - A title
+      - 3-5 topics that are specifically related to that module
+      
+      For each topic, include:
       - A title
       - A relevance score (1-10)
       - A short description (2-3 sentences)
       
       Format the response as JSON that matches this TypeScript interface:
       {
-        title: string;
-        topics: Array<{
+        modules: Array<{
           title: string;
-          relevance: number;
-          description: string;
+          topics: Array<{
+            title: string;
+            relevance: number;
+            description: string;
+          }>
         }>
       }
       
+      Each module should build on the previous one, progressively increasing in complexity or depth.
       Only respond with the JSON data.`;
       
       await streamChat(prompt, (token) => {
@@ -37,8 +44,10 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
       if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
         const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
         try {
-          const moduleData = JSON.parse(jsonStr);
-          resolve([moduleData as Module]);
+          const result = JSON.parse(jsonStr);
+          // If the response has a 'modules' array, use it, otherwise wrap a single module in an array
+          const modules = result.modules || [result];
+          resolve(modules);
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
           console.log("Raw JSON:", jsonStr);

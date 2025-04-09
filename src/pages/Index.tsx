@@ -1,3 +1,4 @@
+
 import { useState, FC } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
@@ -14,6 +15,7 @@ const Index = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
+  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<{moduleIndex: number, topicIndex: number, topic: Topic} | null>(null);
   const [showLearningPath, setShowLearningPath] = useState(false);
   
@@ -21,6 +23,7 @@ const Index = () => {
     // Set loading state
     setIsLoading(true);
     setSearchPerformed(true);
+    setCurrentModuleIndex(0); // Reset to first module on new search
     
     try {
       // Generate content using the LLM
@@ -66,6 +69,13 @@ const Index = () => {
     setSelectedTopic(null);
   };
   
+  const handleNextModule = () => {
+    if (currentModuleIndex < modules.length - 1) {
+      setCurrentModuleIndex(currentModuleIndex + 1);
+      toast.success(`Navigating to Module ${currentModuleIndex + 2}`);
+    }
+  };
+  
   const handleToggleLearningPath = () => {
     setShowLearningPath(!showLearningPath);
   };
@@ -95,7 +105,12 @@ const Index = () => {
               <MapIcon className="w-4 h-4" />
             </button>
           </div>
-          <ModuleGrid modules={modules} onSelectTopic={handleSelectTopic} />
+          <ModuleGrid 
+            modules={modules} 
+            onSelectTopic={handleSelectTopic} 
+            currentModuleIndex={currentModuleIndex}
+            onNextModule={handleNextModule}
+          />
         </div>
       );
     }
@@ -151,9 +166,9 @@ const Index = () => {
     if (showLearningPath && modules.length > 0) {
       return (
         <LearningPath 
-          module={modules[0]} 
-          currentModuleIndex={0} 
-          totalModules={10} 
+          module={modules[currentModuleIndex]} 
+          currentModuleIndex={currentModuleIndex} 
+          totalModules={modules.length} 
           onClose={() => setShowLearningPath(false)} 
         />
       );
@@ -161,7 +176,7 @@ const Index = () => {
     return null;
   };
   
-  const currentModule = selectedTopic ? modules[selectedTopic.moduleIndex] : null;
+  const currentModule = selectedTopic ? modules[selectedTopic.moduleIndex] : (modules[currentModuleIndex] || null);
   const currentTopicIndices = selectedTopic ? { moduleIndex: selectedTopic.moduleIndex, topicIndex: selectedTopic.topicIndex } : null;
   
   return (
@@ -170,6 +185,8 @@ const Index = () => {
       currentModule={currentModule}
       onSelectTopic={handleSelectTopic}
       currentTopicIndices={currentTopicIndices}
+      currentModuleIndex={currentModuleIndex}
+      onNextModule={handleNextModule}
     >
       {renderContent()}
       {renderLearningPath()}

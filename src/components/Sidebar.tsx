@@ -11,16 +11,21 @@ interface SidebarProps {
   modules?: Module[];
   onSelectTopic?: (moduleIndex: number, topicIndex: number) => void;
   currentTopicIndices?: { moduleIndex: number, topicIndex: number } | null;
+  currentModuleIndex?: number;
+  onNextModule?: () => void;
 }
 
 const Sidebar: FC<SidebarProps> = ({ 
   currentModule, 
   modules = [], 
   onSelectTopic,
-  currentTopicIndices
+  currentTopicIndices,
+  currentModuleIndex = 0,
+  onNextModule
 }) => {
   const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
   const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
+  const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
   
   // Calculate progress for the current module
   const calculateProgress = (moduleIndex: number) => {
@@ -45,6 +50,14 @@ const Sidebar: FC<SidebarProps> = ({
       [key]: !prev[key]
     }));
   };
+
+  // Toggle module expansion
+  const toggleModule = (moduleIndex: number) => {
+    setExpandedModules(prev => ({
+      ...prev,
+      [moduleIndex]: !prev[moduleIndex]
+    }));
+  };
   
   // Mark topic as completed
   const markTopicCompleted = (moduleIndex: number, topicIndex: number) => {
@@ -55,8 +68,17 @@ const Sidebar: FC<SidebarProps> = ({
     }));
   };
   
-  // Auto-expand the current topic
+  // Auto-expand the current topic and module
   useEffect(() => {
+    // Auto-expand current module
+    if (currentModuleIndex !== undefined) {
+      setExpandedModules(prev => ({
+        ...prev,
+        [currentModuleIndex]: true
+      }));
+    }
+    
+    // Auto-expand current topic
     if (currentTopicIndices) {
       const { moduleIndex, topicIndex } = currentTopicIndices;
       const key = `${moduleIndex}-${topicIndex}`;
@@ -64,8 +86,14 @@ const Sidebar: FC<SidebarProps> = ({
         ...prev,
         [key]: true
       }));
+      
+      // Also expand its module
+      setExpandedModules(prev => ({
+        ...prev,
+        [moduleIndex]: true
+      }));
     }
-  }, [currentTopicIndices]);
+  }, [currentTopicIndices, currentModuleIndex]);
   
   return (
     <div className="chipling-sidebar">
@@ -97,99 +125,139 @@ const Sidebar: FC<SidebarProps> = ({
             
             {modules && modules.length > 0 ? (
               <div className="space-y-4">
-                {modules.map((module, moduleIndex) => (
-                  <div key={moduleIndex} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium">{module.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {Math.round(calculateProgress(moduleIndex))}%
-                      </div>
-                    </div>
-                    
-                    <Progress value={calculateProgress(moduleIndex)} className="h-1.5 mb-2" />
-                    
-                    <div className="pl-2 space-y-1">
-                      {module.topics.map((topic, topicIndex) => {
-                        const isCompleted = completedTopics[`${moduleIndex}-${topicIndex}`];
-                        const isExpanded = expandedTopics[`${moduleIndex}-${topicIndex}`];
-                        const isActive = currentTopicIndices?.moduleIndex === moduleIndex && 
-                                        currentTopicIndices?.topicIndex === topicIndex;
-                        
-                        return (
-                          <Collapsible 
-                            key={topicIndex} 
-                            open={isExpanded}
-                            onOpenChange={() => toggleTopic(moduleIndex, topicIndex)}
-                          >
-                            <div className={cn(
-                              "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
-                              isActive ? "bg-primary/20" : "hover:bg-accent/10",
-                              isCompleted ? "text-green-400" : ""
-                            )}
-                            onClick={() => onSelectTopic && onSelectTopic(moduleIndex, topicIndex)}
-                            >
-                              <CollapsibleTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <button className="size-5 flex items-center justify-center rounded hover:bg-accent/20">
-                                  {isExpanded ? (
-                                    <ChevronDownIcon className="size-4" />
-                                  ) : (
-                                    <ChevronRightIcon className="size-4" />
-                                  )}
-                                </button>
-                              </CollapsibleTrigger>
-                              
-                              <div className="w-5 h-5 flex items-center justify-center">
-                                {isCompleted ? (
-                                  <div className="w-2 h-2 bg-green-400 rounded-full" />
+                {modules.map((module, moduleIndex) => {
+                  const isCurrentModule = moduleIndex === currentModuleIndex;
+                  const isExpanded = expandedModules[moduleIndex];
+                  
+                  return (
+                    <div key={moduleIndex} className="space-y-2">
+                      <Collapsible 
+                        open={isExpanded}
+                        onOpenChange={() => toggleModule(moduleIndex)}
+                      >
+                        <div className={cn(
+                          "flex items-center justify-between py-2",
+                          isCurrentModule ? "text-primary font-medium" : ""
+                        )}>
+                          <div className="flex items-center gap-2">
+                            <CollapsibleTrigger asChild>
+                              <button className="size-5 flex items-center justify-center rounded hover:bg-accent/20">
+                                {isExpanded ? (
+                                  <ChevronDownIcon className="size-4" />
                                 ) : (
-                                  <div className="w-2 h-2 bg-muted rounded-full" />
+                                  <ChevronRightIcon className="size-4" />
                                 )}
-                              </div>
+                              </button>
+                            </CollapsibleTrigger>
+                            <div className="text-sm font-medium">Module {moduleIndex + 1}: {module.title}</div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {Math.round(calculateProgress(moduleIndex))}%
+                          </div>
+                        </div>
+                        
+                        <Progress value={calculateProgress(moduleIndex)} className="h-1.5 mb-2" />
+                        
+                        <CollapsibleContent>
+                          <div className="pl-2 space-y-1">
+                            {module.topics.map((topic, topicIndex) => {
+                              const isCompleted = completedTopics[`${moduleIndex}-${topicIndex}`];
+                              const isExpanded = expandedTopics[`${moduleIndex}-${topicIndex}`];
+                              const isActive = currentTopicIndices?.moduleIndex === moduleIndex && 
+                                              currentTopicIndices?.topicIndex === topicIndex;
                               
-                              <span className="truncate">{topic.title}</span>
-                            </div>
-                            
-                            <CollapsibleContent>
-                              {topic.subtopics && topic.subtopics.length > 0 ? (
-                                <div className="pl-6 pt-1 pb-1 space-y-1">
-                                  {topic.subtopics.map((subtopic, subtopicIndex) => (
-                                    <div 
-                                      key={subtopicIndex}
-                                      className="flex items-center gap-2 p-1.5 text-xs rounded-md hover:bg-accent/10 cursor-pointer"
-                                    >
-                                      <div className="w-4 h-4 flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 bg-muted rounded-full" />
-                                      </div>
-                                      <span className="truncate">{subtopic.title}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="pl-6 pt-1 pb-1 text-xs text-muted-foreground">
-                                  No subtopics available
-                                </div>
-                              )}
-                              
-                              {topicIndex < module.topics.length - 1 && (
-                                <div 
-                                  className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    markTopicCompleted(moduleIndex, topicIndex);
-                                    onSelectTopic && onSelectTopic(moduleIndex, topicIndex + 1);
-                                  }}
+                              return (
+                                <Collapsible 
+                                  key={topicIndex} 
+                                  open={isExpanded}
+                                  onOpenChange={() => toggleTopic(moduleIndex, topicIndex)}
                                 >
-                                  <span>Next topic</span>
-                                  <ChevronRightIcon className="size-3" />
-                                </div>
-                              )}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        );
-                      })}
+                                  <div className={cn(
+                                    "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
+                                    isActive ? "bg-primary/20" : "hover:bg-accent/10",
+                                    isCompleted ? "text-green-400" : ""
+                                  )}
+                                  onClick={() => onSelectTopic && onSelectTopic(moduleIndex, topicIndex)}
+                                  >
+                                    <CollapsibleTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                      <button className="size-5 flex items-center justify-center rounded hover:bg-accent/20">
+                                        {isExpanded ? (
+                                          <ChevronDownIcon className="size-4" />
+                                        ) : (
+                                          <ChevronRightIcon className="size-4" />
+                                        )}
+                                      </button>
+                                    </CollapsibleTrigger>
+                                    
+                                    <div className="w-5 h-5 flex items-center justify-center">
+                                      {isCompleted ? (
+                                        <div className="w-2 h-2 bg-green-400 rounded-full" />
+                                      ) : (
+                                        <div className="w-2 h-2 bg-muted rounded-full" />
+                                      )}
+                                    </div>
+                                    
+                                    <span className="truncate">{topic.title}</span>
+                                  </div>
+                                  
+                                  <CollapsibleContent>
+                                    {topic.subtopics && topic.subtopics.length > 0 ? (
+                                      <div className="pl-6 pt-1 pb-1 space-y-1">
+                                        {topic.subtopics.map((subtopic, subtopicIndex) => (
+                                          <div 
+                                            key={subtopicIndex}
+                                            className="flex items-center gap-2 p-1.5 text-xs rounded-md hover:bg-accent/10 cursor-pointer"
+                                          >
+                                            <div className="w-4 h-4 flex items-center justify-center">
+                                              <div className="w-1.5 h-1.5 bg-muted rounded-full" />
+                                            </div>
+                                            <span className="truncate">{subtopic.title}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="pl-6 pt-1 pb-1 text-xs text-muted-foreground">
+                                        No subtopics available
+                                      </div>
+                                    )}
+                                    
+                                    {topicIndex < module.topics.length - 1 && (
+                                      <div 
+                                        className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markTopicCompleted(moduleIndex, topicIndex);
+                                          onSelectTopic && onSelectTopic(moduleIndex, topicIndex + 1);
+                                        }}
+                                      >
+                                        <span>Next topic</span>
+                                        <ChevronRightIcon className="size-3" />
+                                      </div>
+                                    )}
+                                    
+                                    {topicIndex === module.topics.length - 1 && moduleIndex < modules.length - 1 && (
+                                      <div 
+                                        className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markTopicCompleted(moduleIndex, topicIndex);
+                                          if (onNextModule) onNextModule();
+                                        }}
+                                      >
+                                        <span>Next module</span>
+                                        <ChevronRightIcon className="size-3" />
+                                      </div>
+                                    )}
+                                  </CollapsibleContent>
+                                </Collapsible>
+                              );
+                            })}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
