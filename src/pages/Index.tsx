@@ -9,6 +9,7 @@ import LearningPath from '@/components/LearningPath';
 import LoadingContent from '@/components/LoadingContent';
 import { Module, Topic } from '@/types/knowledge';
 import { generateModules, generateTopicDetail } from '@/services/contentService';
+import { MapIcon, LayersIcon } from 'lucide-react';
 
 const Index = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
@@ -162,8 +163,17 @@ const Index = () => {
     return null;
   };
   
+  // Determine the current module for the sidebar
+  const currentModule = selectedTopic ? modules[selectedTopic.moduleIndex] : null;
+  const currentTopicIndices = selectedTopic ? { moduleIndex: selectedTopic.moduleIndex, topicIndex: selectedTopic.topicIndex } : null;
+  
   return (
-    <ChiplingLayout>
+    <ChiplingLayout 
+      modules={modules}
+      currentModule={currentModule}
+      onSelectTopic={handleSelectTopic}
+      currentTopicIndices={currentTopicIndices}
+    >
       {renderContent()}
       {renderLearningPath()}
     </ChiplingLayout>
