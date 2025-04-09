@@ -1,6 +1,6 @@
 
 import { FC } from 'react';
-import { BookMarkIcon, LayersIcon, HistoryIcon, User2Icon } from 'lucide-react';
+import { BookmarkIcon, LayersIcon, HistoryIcon, User2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Sidebar: FC = () => {
