@@ -69,10 +69,16 @@ const Index = () => {
     setSelectedTopic(null);
   };
   
-  const handleNextModule = () => {
+  const handleNextModule = async () => {
     if (currentModuleIndex < modules.length - 1) {
-      setCurrentModuleIndex(currentModuleIndex + 1);
-      toast.success(`Navigating to Module ${currentModuleIndex + 2}`);
+      const nextModuleIndex = currentModuleIndex + 1;
+      const nextModule = modules[nextModuleIndex];
+      if (!nextModule.topics || nextModule.topics.length === 0) {
+        const generatedTopics = await generateTopicDetail(nextModule.title);
+        nextModule.topics = generatedTopics;
+      }
+      setCurrentModuleIndex(nextModuleIndex);
+      toast.success(`Navigating to Module ${nextModuleIndex + 1}`);
     }
   };
   
@@ -131,7 +137,7 @@ const Index = () => {
     // Initial state - show landing content
     return (
       <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4">
-        <h1 className="text-4xl font-bold mb-4">Down the Rabbit Hole</h1>
+        <h1 className="text-4xl font-bold mb-4">"Deep Dive into Knowledge”</h1>
         <p className="text-lg text-muted-foreground mb-12">
           Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
         </p>

@@ -9,9 +9,10 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
       
       // Create a structured prompt to generate modules
       const prompt = `Generate a structured learning path for the topic: "${searchQuery}".
-      Please provide 3 modules (chapters), with each module having:
+      Please provide all the modules (chapters) associated with the topic to cover all the content for the respective topic, with each module having:
       - A title
-      - 3-5 topics that are specifically related to that module
+      - all the topics that are specifically related to that module
+      - generate more than 4 topics for each module
       
       For each topic, include:
       - A title

@@ -21,7 +21,7 @@ export async function streamChat(message: string, onToken: (token: string) => vo
             content: message
           }
         ],
-        model: "google/gemma-2-27b-it"
+        model: "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8"
       })
     });
 
