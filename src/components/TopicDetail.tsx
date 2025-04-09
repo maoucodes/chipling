@@ -3,6 +3,7 @@ import { FC, useState } from 'react';
 import { ArrowLeftIcon, BookmarkIcon, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Topic, Subtopic } from '@/types/knowledge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TopicDetailProps {
   topic: Topic;
@@ -11,6 +12,7 @@ interface TopicDetailProps {
 
 const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack }) => {
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
+  const isLoading = !topic.content;
 
   const toggleSubtopic = (index: number) => {
     setExpandedSubtopics(prev => ({
@@ -54,11 +56,22 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack }) => {
           <p className="text-muted-foreground mb-4">
             {topic.description}
           </p>
-          <div className="text-foreground mb-8">
-            {topic.content}
-          </div>
+          
+          {isLoading ? (
+            <div className="space-y-4 my-8">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ) : (
+            <div className="text-foreground mb-8">
+              {topic.content}
+            </div>
+          )}
 
-          {topic.subtopics && topic.subtopics.length > 0 && (
+          {!isLoading && topic.subtopics && topic.subtopics.length > 0 && (
             <div className="mt-8">
               <h2 className="text-xl font-medium mb-4">Explore Deeper</h2>
               <div className="space-y-4">
@@ -74,7 +87,7 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack }) => {
             </div>
           )}
 
-          {topic.references && topic.references.length > 0 && (
+          {!isLoading && topic.references && topic.references.length > 0 && (
             <div className="mt-8 pt-6 border-t border-border/50">
               <h2 className="text-lg font-medium mb-2">References & Further Reading</h2>
               <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">

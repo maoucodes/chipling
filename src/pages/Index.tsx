@@ -1,45 +1,65 @@
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
 import SearchInput from '@/components/SearchInput';
 import ModuleGrid from '@/components/ModuleGrid';
 import TopicDetail from '@/components/TopicDetail';
 import LearningPath from '@/components/LearningPath';
+import LoadingContent from '@/components/LoadingContent';
 import { Module, Topic } from '@/types/knowledge';
-import { mockModules, timeMockModule } from '@/data/sampleData';
-import { toast } from 'sonner';
+import { generateModules, generateTopicDetail } from '@/services/contentService';
 
 const Index = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
-  const [modules, setModules] = useState<Module[]>(mockModules);
-  const [selectedTopic, setSelectedTopic] = useState<{moduleIndex: number, topicIndex: number} | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<{moduleIndex: number, topicIndex: number, topic: Topic} | null>(null);
   const [showLearningPath, setShowLearningPath] = useState(false);
   
-  const handleSearch = (query: string) => {
-    // In a real app, this would fetch data from an API
-    // For now, we'll simulate a search result using mock data
+  const handleSearch = async (query: string) => {
+    // Set loading state
+    setIsLoading(true);
     setSearchPerformed(true);
     
-    // Create a synthetic delay to simulate API call
-    toast.promise(
-      new Promise(resolve => setTimeout(resolve, 800)),
-      {
-        loading: 'Exploring knowledge on ' + query + '...',
-        success: 'Found relevant topics',
-        error: 'Error fetching topics'
-      }
-    );
-    
-    // Set mock data as the result
-    if (query.toLowerCase().includes('time') || query.toLowerCase().includes('perception')) {
-      setModules([timeMockModule]);
-    } else {
-      setModules(mockModules);
+    try {
+      // Generate content using the LLM
+      const generatedModules = await generateModules(query);
+      setModules(generatedModules);
+      toast.success(`Found knowledge modules for "${query}"`);
+    } catch (error) {
+      console.error("Error generating content:", error);
+      toast.error("Failed to generate content. Please try again.");
+      // Set empty modules if failed
+      setModules([]);
+    } finally {
+      setIsLoading(false);
     }
   };
   
-  const handleSelectTopic = (moduleIndex: number, topicIndex: number) => {
-    setSelectedTopic({ moduleIndex, topicIndex });
+  const handleSelectTopic = async (moduleIndex: number, topicIndex: number) => {
+    const topic = modules[moduleIndex].topics[topicIndex];
+    
+    // First set with basic info to show something is happening
+    setSelectedTopic({ moduleIndex, topicIndex, topic });
+    
+    // Then fetch detailed content if we don't have it yet
+    if (!topic.content) {
+      try {
+        const enrichedTopic = await generateTopicDetail(topic);
+        
+        // Update the module with the enriched topic
+        const updatedModules = [...modules];
+        updatedModules[moduleIndex].topics[topicIndex] = enrichedTopic;
+        setModules(updatedModules);
+        
+        // Update the selected topic
+        setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
+      } catch (error) {
+        console.error("Error generating topic details:", error);
+        toast.error("Failed to load detailed content. Please try again.");
+      }
+    }
   };
   
   const handleBackToTopics = () => {
@@ -53,12 +73,16 @@ const Index = () => {
   const renderContent = () => {
     // If a topic is selected, show the topic detail view
     if (selectedTopic !== null) {
-      const topic = modules[selectedTopic.moduleIndex].topics[selectedTopic.topicIndex];
-      return <TopicDetail topic={topic} onBack={handleBackToTopics} />;
+      return <TopicDetail topic={selectedTopic.topic} onBack={handleBackToTopics} />;
+    }
+    
+    // If content is loading, show the loading state
+    if (isLoading) {
+      return <LoadingContent />;
     }
     
     // If search has been performed, show the module grid
-    if (searchPerformed) {
+    if (searchPerformed && modules.length > 0) {
       return (
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -72,6 +96,19 @@ const Index = () => {
             </button>
           </div>
           <ModuleGrid modules={modules} onSelectTopic={handleSelectTopic} />
+        </div>
+      );
+    }
+    
+    // If search performed but no results
+    if (searchPerformed && modules.length === 0 && !isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4">
+          <h2 className="text-2xl font-bold mb-4">No Results Found</h2>
+          <p className="text-muted-foreground mb-6">
+            We couldn't generate knowledge modules for your query. Please try a different search term.
+          </p>
+          <SearchInput onSearch={handleSearch} />
         </div>
       );
     }
@@ -139,7 +176,7 @@ interface PopularTopicProps {
   onClick: () => void;
 }
 
-const PopularTopic: React.FC<PopularTopicProps> = ({ icon, title, onClick }) => {
+const PopularTopic: FC<PopularTopicProps> = ({ icon, title, onClick }) => {
   return (
     <button 
       className="p-4 bg-card/30 backdrop-blur-sm border border-border/50 rounded-md hover:bg-card/50 transition-colors flex items-center gap-3"
