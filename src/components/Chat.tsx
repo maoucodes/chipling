@@ -14,7 +14,7 @@ const Chat = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentResponse, setCurrentResponse] = useState('');
+  const [streamingMessage, setStreamingMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,19 +27,19 @@ const Chat = () => {
     // Add user message
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     
-    // Initialize assistant response
-    setCurrentResponse('');
+    // Reset streaming message and set loading state
+    setStreamingMessage('');
     setIsLoading(true);
     
     try {
-      // Start streaming response
+      // Stream the response token by token
       await streamChat(userMessage, (token) => {
-        setCurrentResponse(prev => prev + token);
+        setStreamingMessage(prev => prev + token);
       });
       
-      // When streaming is done, add the complete message
-      setMessages(prev => [...prev, { role: 'assistant', content: currentResponse }]);
-      setCurrentResponse('');
+      // When streaming is complete, add the assistant message
+      setMessages(prev => [...prev, { role: 'assistant', content: streamingMessage }]);
+      setStreamingMessage('');
     } catch (error) {
       console.error('Error in chat:', error);
       toast.error('Failed to get a response. Please try again.');
@@ -48,10 +48,10 @@ const Chat = () => {
     }
   };
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change or when streaming
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, currentResponse]);
+  }, [messages, streamingMessage]);
 
   return (
     <div className="flex flex-col h-full">
@@ -73,15 +73,18 @@ const Chat = () => {
           </div>
         ))}
         
-        {currentResponse && (
+        {streamingMessage && (
           <div className="flex justify-start">
             <div className="max-w-[80%] p-3 rounded-lg bg-muted/30 text-foreground">
-              <div className="whitespace-pre-wrap">{currentResponse}</div>
+              <div className="whitespace-pre-wrap">
+                {streamingMessage}
+                <span className="ml-1 animate-pulse">▋</span>
+              </div>
             </div>
           </div>
         )}
         
-        {isLoading && !currentResponse && (
+        {isLoading && !streamingMessage && (
           <div className="flex justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>

@@ -1,4 +1,3 @@
-
 import { useState, FC } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
@@ -69,16 +68,10 @@ const Index = () => {
     setSelectedTopic(null);
   };
   
-  const handleNextModule = async () => {
+  const handleNextModule = () => {
     if (currentModuleIndex < modules.length - 1) {
-      const nextModuleIndex = currentModuleIndex + 1;
-      const nextModule = modules[nextModuleIndex];
-      if (!nextModule.topics || nextModule.topics.length === 0) {
-        const generatedTopics = await generateTopicDetail(nextModule.title);
-        nextModule.topics = generatedTopics;
-      }
-      setCurrentModuleIndex(nextModuleIndex);
-      toast.success(`Navigating to Module ${nextModuleIndex + 1}`);
+      setCurrentModuleIndex(currentModuleIndex + 1);
+      toast.success(`Navigating to Module ${currentModuleIndex + 2}`);
     }
   };
   
@@ -182,6 +175,7 @@ const Index = () => {
     return null;
   };
   
+  // Determine the current module for the sidebar
   const currentModule = selectedTopic ? modules[selectedTopic.moduleIndex] : (modules[currentModuleIndex] || null);
   const currentTopicIndices = selectedTopic ? { moduleIndex: selectedTopic.moduleIndex, topicIndex: selectedTopic.topicIndex } : null;
   
