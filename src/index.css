@@ -94,6 +94,23 @@
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+}
+
 .chipling-card {
   @apply bg-card/50 backdrop-blur-sm border border-border/50 rounded-md p-4 hover:bg-card/80 transition-all duration-200 cursor-pointer;
 }

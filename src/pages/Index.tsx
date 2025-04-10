@@ -8,7 +8,7 @@ import TopicDetail from '@/components/TopicDetail';
 import LearningPath from '@/components/LearningPath';
 import LoadingContent from '@/components/LoadingContent';
 import { Module, Topic } from '@/types/knowledge';
-import { generateModules, generateTopicDetail } from '@/services/contentService';
+import { generateModules, generateTopics, generateTopicDetail } from '@/services/contentService';
 import { MapIcon, LayersIcon, HistoryIcon } from 'lucide-react';
 import LoginModal from '@/components/LoginModal';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,10 +35,24 @@ const Index = () => {
     setCurrentModuleIndex(0); // Reset to first module on new search
     
     try {
-      // Generate content using the LLM
+      // Generate only module titles initially
       const generatedModules = await generateModules(query);
-      setModules(generatedModules);
+      setModules(generatedModules.map(module => ({ ...module, topics: [] })));
       toast.success(`Found knowledge modules for "${query}"`);
+      setIsLoading(false);
+      
+      // Load topics for the first module with streaming updates
+      const updatedModules = [...generatedModules];
+      updatedModules[0].topics = [];
+      setModules(updatedModules);
+      
+      await generateTopics(generatedModules[0].title, (topic) => {
+        setModules(currentModules => {
+          const newModules = [...currentModules];
+          newModules[0].topics = [...newModules[0].topics, topic];
+          return newModules;
+        });
+      });
     } catch (error) {
       console.error("Error generating content:", error);
       toast.error("Failed to generate content. Please try again.");
@@ -85,10 +99,32 @@ const Index = () => {
     setStreamingContent('');
   };
   
-  const handleNextModule = () => {
+  const handleNextModule = async () => {
     if (currentModuleIndex < modules.length - 1) {
-      setCurrentModuleIndex(currentModuleIndex + 1);
-      toast.success(`Navigating to Module ${currentModuleIndex + 2}`);
+      const nextIndex = currentModuleIndex + 1;
+      setCurrentModuleIndex(nextIndex);
+      
+      // Load topics for the next module if they haven't been loaded yet
+      if (modules[nextIndex].topics.length === 0) {
+        try {
+          const updatedModules = [...modules];
+          updatedModules[nextIndex].topics = [];
+          setModules(updatedModules);
+          
+          await generateTopics(modules[nextIndex].title, (topic) => {
+            setModules(currentModules => {
+              const newModules = [...currentModules];
+              newModules[nextIndex].topics = [...newModules[nextIndex].topics, topic];
+              return newModules;
+            });
+          });
+        } catch (error) {
+          console.error("Error loading module topics:", error);
+          toast.error("Failed to load module topics. Please try again.");
+        }
+      }
+      
+      toast.success(`Navigating to Module ${nextIndex + 1}`);
     }
   };
   

@@ -18,7 +18,7 @@ const TopicCard: FC<TopicCardProps> = ({
 }) => {
   return (
     <div 
-      className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-md overflow-hidden hover:bg-card/50 transition-all duration-200"
+      className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-md overflow-hidden hover:bg-card/50 transition-all duration-300 opacity-0 animate-fade-in"
       onClick={onClick}
     >
       <div className="p-4">

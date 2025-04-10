@@ -7,32 +7,20 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
     try {
       let fullResponse = '';
       
-      // Create a structured prompt to generate modules
-      const prompt = `Generate a structured learning path for the topic: "${searchQuery}".
-      Please provide all the modules (chapters) associated with the topic to cover all the content for the respective topic, with each module having:
-      - A title
-      - all the topics that are specifically related to that module
-      - generate more than 4 topics for each module
-      
-      For each topic, include:
-      - A title
-      - A relevance score (1-10)
-      - A short description (2-3 sentences)
+      // Create a structured prompt to generate only module titles
+      const prompt = `Generate a structured learning path outline for the topic: "${searchQuery}".
+      Please provide only the module (chapter) titles that would cover this topic comprehensively.
+      Each module should build on the previous one, progressively increasing in complexity or depth.
       
       Format the response as JSON that matches this TypeScript interface:
       {
         modules: Array<{
           title: string;
-          topics: Array<{
-            title: string;
-            relevance: number;
-            description: string;
-          }>
+          topics: Array<any>; // This will be populated later
         }>
       }
       
-      Each module should build on the previous one, progressively increasing in complexity or depth.
-      Only respond with the JSON data.`;
+      Only respond with the JSON data containing module titles.`;
       
       await streamChat(prompt, (token) => {
         fullResponse += token;
@@ -62,6 +50,75 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
       reject(error);
     }
   });
+}
+
+export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void): Promise<Topic[]> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let fullResponse = '';
+      let currentTopics: Topic[] = [];
+      
+      const prompt = `Generate a list of topics for the module titled: "${moduleTitle}".
+      Please provide at least 4 topics that are specifically related to this module.
+      Each topic should be provided one at a time in a separate JSON object.
+      
+      For each topic, include:
+      - A title
+      - A relevance score (1-10)
+      - A Very short description (2-3 sentences)
+      
+      Format each topic as a separate JSON object that matches this TypeScript interface:
+      {
+        title: string;
+        relevance: number;
+        description: string;
+      }
+      
+      Provide one topic at a time, with each topic on a new line.`;
+      
+      await streamChat(prompt, (token) => {
+        fullResponse += token;
+        
+        // Try to extract topics as they come in
+        const lines = fullResponse.split('\n');
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              // Look for JSON objects in the line
+              const jsonStartIndex = line.indexOf('{');
+              const jsonEndIndex = line.lastIndexOf('}') + 1;
+              
+              if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+                const jsonStr = line.substring(jsonStartIndex, jsonEndIndex);
+                const topic = JSON.parse(jsonStr);
+                
+                // Check if this is a valid topic object
+                if (topic.title && typeof topic.relevance === 'number' && topic.description) {
+                  // Check if we already have this topic
+                  const topicExists = currentTopics.some(t => t.title === topic.title);
+                  
+                  if (!topicExists) {
+                    currentTopics.push(topic);
+                    if (onTopicGenerated) {
+                      onTopicGenerated(topic);
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              // Ignore parsing errors for incomplete JSON
+            }
+          }
+        }
+      });
+      
+      resolve(currentTopics);
+    } catch (error) {
+      console.error("Error generating topics:", error);
+      reject(error);
+    }
+  });
+
 }
 
 export function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void): Promise<Topic> {
