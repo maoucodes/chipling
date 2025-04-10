@@ -1,3 +1,4 @@
+
 import { useState, FC } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
@@ -17,6 +18,7 @@ const Index = () => {
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<{moduleIndex: number, topicIndex: number, topic: Topic} | null>(null);
   const [showLearningPath, setShowLearningPath] = useState(false);
+  const [streamingContent, setStreamingContent] = useState<string>('');
   
   const handleSearch = async (query: string) => {
     // Set loading state
@@ -44,28 +46,35 @@ const Index = () => {
     
     // First set with basic info to show something is happening
     setSelectedTopic({ moduleIndex, topicIndex, topic });
+    setStreamingContent(''); // Reset streaming content
     
     // Then fetch detailed content if we don't have it yet
     if (!topic.content) {
       try {
-        const enrichedTopic = await generateTopicDetail(topic);
-        
-        // Update the module with the enriched topic
-        const updatedModules = [...modules];
-        updatedModules[moduleIndex].topics[topicIndex] = enrichedTopic;
-        setModules(updatedModules);
-        
-        // Update the selected topic
-        setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
+        // Begin streaming content
+        generateTopicDetail(topic, (partialContent) => {
+          setStreamingContent(partialContent);
+        }).then(enrichedTopic => {
+          // Update the module with the enriched topic
+          const updatedModules = [...modules];
+          updatedModules[moduleIndex].topics[topicIndex] = enrichedTopic;
+          setModules(updatedModules);
+          
+          // Update the selected topic
+          setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
+          setStreamingContent(''); // Clear streaming content when done
+        });
       } catch (error) {
         console.error("Error generating topic details:", error);
         toast.error("Failed to load detailed content. Please try again.");
+        setStreamingContent(''); // Clear streaming on error
       }
     }
   };
   
   const handleBackToTopics = () => {
     setSelectedTopic(null);
+    setStreamingContent('');
   };
   
   const handleNextModule = () => {
@@ -82,7 +91,13 @@ const Index = () => {
   const renderContent = () => {
     // If a topic is selected, show the topic detail view
     if (selectedTopic !== null) {
-      return <TopicDetail topic={selectedTopic.topic} onBack={handleBackToTopics} />;
+      return (
+        <TopicDetail 
+          topic={selectedTopic.topic} 
+          onBack={handleBackToTopics} 
+          streamingContent={streamingContent}
+        />
+      );
     }
     
     // If content is loading, show the loading state
@@ -130,7 +145,7 @@ const Index = () => {
     // Initial state - show landing content
     return (
       <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4">
-        <h1 className="text-4xl font-bold mb-4">"Deep Dive into Knowledge”</h1>
+        <h1 className="text-4xl font-bold mb-4">"Deep Dive into Knowledge"</h1>
         <p className="text-lg text-muted-foreground mb-12">
           Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
         </p>
@@ -211,24 +226,5 @@ const PopularTopic: FC<PopularTopicProps> = ({ icon, title, onClick }) => {
     </button>
   );
 };
-
-const CustomMapIcon = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z"/>
-    <path d="M9 3v15"/>
-    <path d="M15 6v15"/>
-  </svg>
-);
 
 export default Index;

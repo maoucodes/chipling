@@ -8,11 +8,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface TopicDetailProps {
   topic: Topic;
   onBack: () => void;
+  streamingContent?: string;
 }
 
-const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack }) => {
+const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) => {
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
-  const isLoading = !topic.content;
+  const isLoading = !topic.content && !streamingContent;
 
   const toggleSubtopic = (index: number) => {
     setExpandedSubtopics(prev => ({
@@ -20,6 +21,9 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack }) => {
       [index]: !prev[index]
     }));
   };
+
+  // Display either the final content or the streaming content
+  const displayContent = streamingContent || topic.content;
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in">
@@ -67,7 +71,8 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack }) => {
             </div>
           ) : (
             <div className="text-foreground mb-8">
-              {topic.content}
+              {displayContent}
+              {streamingContent && <span className="ml-1 animate-pulse">▋</span>}
             </div>
           )}
 

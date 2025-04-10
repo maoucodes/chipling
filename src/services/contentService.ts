@@ -64,10 +64,11 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
   });
 }
 
-export async function generateTopicDetail(topic: Topic): Promise<Topic> {
+export function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void): Promise<Topic> {
   return new Promise(async (resolve, reject) => {
     try {
       let fullResponse = '';
+      let currentStreamingContent = '';
       
       const prompt = `Generate detailed information about the topic: "${topic.title}".
       Please include:
@@ -93,6 +94,24 @@ export async function generateTopicDetail(topic: Topic): Promise<Topic> {
       
       await streamChat(prompt, (token) => {
         fullResponse += token;
+        
+        // Try to extract partial content as it streams
+        if (onStreamUpdate) {
+          try {
+            // Look for content field in the streamed JSON
+            const contentMatch = fullResponse.match(/"content":\s*"([^"]*)"/);
+            if (contentMatch && contentMatch[1]) {
+              const partialContent = contentMatch[1];
+              // Only update if content has changed
+              if (partialContent !== currentStreamingContent) {
+                currentStreamingContent = partialContent;
+                onStreamUpdate(partialContent);
+              }
+            }
+          } catch (e) {
+            // Ignore JSON parsing errors during streaming
+          }
+        }
       });
       
       // Extract JSON from the response

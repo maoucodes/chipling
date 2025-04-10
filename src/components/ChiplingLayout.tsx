@@ -1,40 +1,40 @@
-
-import { ReactNode } from 'react';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import ChatPanel from './ChatPanel';
-import { useLocation } from 'react-router-dom';
+import { FC, ReactNode } from 'react';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
 
 interface ChiplingLayoutProps {
   children: ReactNode;
+  modules?: any;
   currentModule?: any;
-  modules?: any[];
-  onSelectTopic?: (moduleIndex: number, topicIndex: number) => void;
-  currentTopicIndices?: { moduleIndex: number, topicIndex: number } | null;
+  onSelectTopic?: any;
+  currentTopicIndices?: any;
+  currentModuleIndex?: any;
+  onNextModule?: any;
 }
 
-const ChiplingLayout = ({ 
+const ChiplingLayout: FC<ChiplingLayoutProps> = ({ 
   children, 
-  currentModule,
-  modules,
-  onSelectTopic,
-  currentTopicIndices
-}: ChiplingLayoutProps) => {
+  modules, 
+  currentModule, 
+  onSelectTopic, 
+  currentTopicIndices,
+  currentModuleIndex,
+  onNextModule
+}) => {
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="chipling-layout">
       <Sidebar 
-        currentModule={currentModule}
         modules={modules}
+        currentModule={currentModule}
         onSelectTopic={onSelectTopic}
         currentTopicIndices={currentTopicIndices}
+        currentModuleIndex={currentModuleIndex}
+        onNextModule={onNextModule}
       />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1">
         <Header />
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
+        <main className="flex-1 p-4">{children}</main>
       </div>
-      <ChatPanel />
     </div>
   );
 };
