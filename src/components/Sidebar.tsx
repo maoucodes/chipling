@@ -1,10 +1,10 @@
-
 import { FC, useState, useEffect } from 'react';
 import { BookmarkIcon, HistoryIcon, User2Icon, LayersIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import { Module, Topic } from '@/types/knowledge';
+import UserProfile from '@/components/UserProfile';
 
 interface SidebarProps {
   currentModule?: Module | null;
@@ -27,7 +27,6 @@ const Sidebar: FC<SidebarProps> = ({
   const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
   
-  // Calculate progress for the current module
   const calculateProgress = (moduleIndex: number) => {
     if (!modules || !modules[moduleIndex]) return 0;
     
@@ -42,7 +41,6 @@ const Sidebar: FC<SidebarProps> = ({
     return (completedCount / totalTopics) * 100;
   };
   
-  // Toggle topic expansion
   const toggleTopic = (moduleIndex: number, topicIndex: number) => {
     const key = `${moduleIndex}-${topicIndex}`;
     setExpandedTopics(prev => ({
@@ -51,7 +49,6 @@ const Sidebar: FC<SidebarProps> = ({
     }));
   };
 
-  // Toggle module expansion
   const toggleModule = (moduleIndex: number) => {
     setExpandedModules(prev => ({
       ...prev,
@@ -59,7 +56,6 @@ const Sidebar: FC<SidebarProps> = ({
     }));
   };
   
-  // Mark topic as completed
   const markTopicCompleted = (moduleIndex: number, topicIndex: number) => {
     const key = `${moduleIndex}-${topicIndex}`;
     setCompletedTopics(prev => ({
@@ -68,9 +64,7 @@ const Sidebar: FC<SidebarProps> = ({
     }));
   };
   
-  // Auto-expand the current topic and module
   useEffect(() => {
-    // Auto-expand current module
     if (currentModuleIndex !== undefined) {
       setExpandedModules(prev => ({
         ...prev,
@@ -78,7 +72,6 @@ const Sidebar: FC<SidebarProps> = ({
       }));
     }
     
-    // Auto-expand current topic
     if (currentTopicIndices) {
       const { moduleIndex, topicIndex } = currentTopicIndices;
       const key = `${moduleIndex}-${topicIndex}`;
@@ -87,7 +80,6 @@ const Sidebar: FC<SidebarProps> = ({
         [key]: true
       }));
       
-      // Also expand its module
       setExpandedModules(prev => ({
         ...prev,
         [moduleIndex]: true
@@ -275,12 +267,7 @@ const Sidebar: FC<SidebarProps> = ({
       </div>
 
       <div className="p-4 border-t border-border/50">
-        <div className="flex items-center gap-2">
-          <div className="bg-muted rounded-full w-8 h-8 flex items-center justify-center">
-            <User2Icon className="w-5 h-5" />
-          </div>
-          <span>User</span>
-        </div>
+        <UserProfile />
       </div>
     </div>
   );
