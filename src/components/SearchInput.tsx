@@ -3,42 +3,21 @@ import { FC, useState } from 'react';
 import { SearchIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRabbitHoles } from '@/contexts/RabbitHolesContext';
 
 interface SearchInputProps {
   onSearch: (query: string) => void;
-  onLoginRequired: () => void;
 }
 
-const SearchInput: FC<SearchInputProps> = ({ onSearch, onLoginRequired }) => {
+const SearchInput: FC<SearchInputProps> = ({ onSearch }) => {
   const [query, setQuery] = useState('');
-  const { isAuthenticated } = useAuth();
-  const { addRabbitHole } = useRabbitHoles();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!query.trim()) {
       toast.error('Please enter a search query');
       return;
     }
-    
-    if (!isAuthenticated) {
-      // User needs to login first
-      onLoginRequired();
-      return;
-    }
-    
-    try {
-      // Save the search query as a rabbit hole
-      await addRabbitHole(query);
-      // Proceed with the search
-      onSearch(query);
-    } catch (error) {
-      console.error("Error processing search:", error);
-      toast.error("An error occurred while processing your search");
-    }
+    onSearch(query);
   };
 
   return (
