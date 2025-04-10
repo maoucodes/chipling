@@ -14,7 +14,7 @@ const firebaseConfig = {
   messagingSenderId: "83441437965",
   appId: "1:83441437965:web:c4cf8d26d9c844f0fff444",
   measurementId: "G-J8B9033FVF",
-  databaseURL: "https://chipling-6505e-default-rtdb.firebaseio.com"
+  databaseURL: "https://chipling-6505e-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 // Initialize Firebase
