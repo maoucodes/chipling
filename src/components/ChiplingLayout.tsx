@@ -39,7 +39,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
       <div className="flex flex-col flex-1 h-full overflow-hidden">
         <Header />
         <ScrollArea className="flex-1 h-full">
-          <main className="p-4 min-h-full">{children}</main>
+          <main className="p-4 min-h-full flex items-center justify-center">{children}</main>
         </ScrollArea>
       </div>
     </div>
