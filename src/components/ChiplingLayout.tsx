@@ -1,6 +1,9 @@
+
 import { FC, ReactNode } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChiplingLayoutProps {
   children: ReactNode;
@@ -21,8 +24,10 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
   currentModuleIndex,
   onNextModule
 }) => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="chipling-layout">
+    <div className="flex h-screen w-full overflow-hidden">
       <Sidebar 
         modules={modules}
         currentModule={currentModule}
@@ -31,9 +36,11 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
         currentModuleIndex={currentModuleIndex}
         onNextModule={onNextModule}
       />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         <Header />
-        <main className="flex-1 p-4">{children}</main>
+        <ScrollArea className="flex-1 h-full">
+          <main className="p-4 min-h-full">{children}</main>
+        </ScrollArea>
       </div>
     </div>
   );
