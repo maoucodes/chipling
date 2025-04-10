@@ -9,9 +9,14 @@ import LearningPath from '@/components/LearningPath';
 import LoadingContent from '@/components/LoadingContent';
 import { Module, Topic } from '@/types/knowledge';
 import { generateModules, generateTopicDetail } from '@/services/contentService';
-import { MapIcon, LayersIcon } from 'lucide-react';
+import { MapIcon, LayersIcon, HistoryIcon } from 'lucide-react';
+import LoginModal from '@/components/LoginModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRabbitHoles } from '@/contexts/RabbitHolesContext';
+import RabbitHolesView from '@/components/RabbitHolesView';
 
 const Index = () => {
+  const { isAuthenticated } = useAuth();
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
@@ -19,6 +24,9 @@ const Index = () => {
   const [selectedTopic, setSelectedTopic] = useState<{moduleIndex: number, topicIndex: number, topic: Topic} | null>(null);
   const [showLearningPath, setShowLearningPath] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string>('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingSearch, setPendingSearch] = useState<string | null>(null);
+  const [showRabbitHoles, setShowRabbitHoles] = useState(false);
   
   const handleSearch = async (query: string) => {
     // Set loading state
@@ -87,8 +95,33 @@ const Index = () => {
   const handleToggleLearningPath = () => {
     setShowLearningPath(!showLearningPath);
   };
+
+  const handleLoginRequired = () => {
+    setShowLoginModal(true);
+  };
+
+  const handleLoginSuccess = () => {
+    if (pendingSearch) {
+      handleSearch(pendingSearch);
+      setPendingSearch(null);
+    }
+  };
+
+  const handleToggleRabbitHoles = () => {
+    setShowRabbitHoles(!showRabbitHoles);
+  };
   
   const renderContent = () => {
+    // If showing rabbit holes view
+    if (showRabbitHoles) {
+      return (
+        <RabbitHolesView 
+          onSelectRabbitHole={handleSearch}
+          onClose={() => setShowRabbitHoles(false)}
+        />
+      );
+    }
+    
     // If a topic is selected, show the topic detail view
     if (selectedTopic !== null) {
       return (
@@ -111,13 +144,22 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Exploring Knowledge</h1>
-            <button 
-              onClick={handleToggleLearningPath}
-              className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors"
-            >
-              <span>Learning Path</span>
-              <MapIcon className="w-4 h-4" />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={handleToggleRabbitHoles}
+                className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors"
+              >
+                <span>Rabbit Holes</span>
+                <HistoryIcon className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleToggleLearningPath}
+                className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors"
+              >
+                <span>Learning Path</span>
+                <MapIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <ModuleGrid 
             modules={modules} 
@@ -137,7 +179,7 @@ const Index = () => {
           <p className="text-muted-foreground mb-6">
             We couldn't generate knowledge modules for your query. Please try a different search term.
           </p>
-          <SearchInput onSearch={handleSearch} />
+          <SearchInput onSearch={handleSearch} onLoginRequired={handleLoginRequired} />
         </div>
       );
     }
@@ -149,27 +191,55 @@ const Index = () => {
         <p className="text-lg text-muted-foreground mb-12">
           Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
         </p>
-        <SearchInput onSearch={handleSearch} />
+        <SearchInput onSearch={handleSearch} onLoginRequired={handleLoginRequired} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-8">
           <PopularTopic 
             icon="🌌" 
             title="Black Hole Paradoxes" 
-            onClick={() => handleSearch("Black Hole Paradoxes")}
+            onClick={() => {
+              if (isAuthenticated) {
+                handleSearch("Black Hole Paradoxes");
+              } else {
+                setPendingSearch("Black Hole Paradoxes");
+                setShowLoginModal(true);
+              }
+            }}
           />
           <PopularTopic 
             icon="🔬" 
             title="Dark Matter Theory" 
-            onClick={() => handleSearch("Dark Matter Theory")}
+            onClick={() => {
+              if (isAuthenticated) {
+                handleSearch("Dark Matter Theory");
+              } else {
+                setPendingSearch("Dark Matter Theory");
+                setShowLoginModal(true);
+              }
+            }}
           />
           <PopularTopic 
             icon="💭" 
             title="Dream Science Research" 
-            onClick={() => handleSearch("Dream Science Research")}
+            onClick={() => {
+              if (isAuthenticated) {
+                handleSearch("Dream Science Research");
+              } else {
+                setPendingSearch("Dream Science Research");
+                setShowLoginModal(true);
+              }
+            }}
           />
           <PopularTopic 
             icon="🧘" 
             title="Meditation Neuroscience" 
-            onClick={() => handleSearch("Meditation Neuroscience")}
+            onClick={() => {
+              if (isAuthenticated) {
+                handleSearch("Meditation Neuroscience");
+              } else {
+                setPendingSearch("Meditation Neuroscience");
+                setShowLoginModal(true);
+              }
+            }}
           />
         </div>
       </div>
@@ -195,17 +265,25 @@ const Index = () => {
   const currentTopicIndices = selectedTopic ? { moduleIndex: selectedTopic.moduleIndex, topicIndex: selectedTopic.topicIndex } : null;
   
   return (
-    <ChiplingLayout 
-      modules={modules}
-      currentModule={currentModule}
-      onSelectTopic={handleSelectTopic}
-      currentTopicIndices={currentTopicIndices}
-      currentModuleIndex={currentModuleIndex}
-      onNextModule={handleNextModule}
-    >
-      {renderContent()}
-      {renderLearningPath()}
-    </ChiplingLayout>
+    <>
+      <ChiplingLayout 
+        modules={modules}
+        currentModule={currentModule}
+        onSelectTopic={handleSelectTopic}
+        currentTopicIndices={currentTopicIndices}
+        currentModuleIndex={currentModuleIndex}
+        onNextModule={handleNextModule}
+      >
+        {renderContent()}
+        {renderLearningPath()}
+      </ChiplingLayout>
+      
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginSuccess}
+      />
+    </>
   );
 };
 
