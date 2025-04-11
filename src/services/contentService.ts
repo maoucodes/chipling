@@ -2,12 +2,13 @@
 import { Module, Topic } from '@/types/knowledge';
 import { streamChat } from './chatService';
 
-export async function generateModules(searchQuery: string): Promise<Module[]> {
-  return new Promise(async (resolve, reject) => {
+export async function generateModules(searchQuery: string, maxRetries = 3): Promise<Module[]> {
+  let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<Module[]> => {
     try {
       let fullResponse = '';
       
-      // Create a structured prompt to generate only module titles
       const prompt = `Generate a structured learning path outline for the topic: "${searchQuery}".
       Please provide only the module (chapter) titles that would cover this topic comprehensively.
       Each module should build on the previous one, progressively increasing in complexity or depth.
@@ -26,7 +27,6 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
         fullResponse += token;
       });
       
-      // Extract JSON from the response
       const jsonStartIndex = fullResponse.indexOf('{');
       const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
       
@@ -34,26 +34,43 @@ export async function generateModules(searchQuery: string): Promise<Module[]> {
         const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
         try {
           const result = JSON.parse(jsonStr);
-          // If the response has a 'modules' array, use it, otherwise wrap a single module in an array
           const modules = result.modules || [result];
-          resolve(modules);
+          return modules;
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
           console.log("Raw JSON:", jsonStr);
-          reject(new Error("Failed to parse generated content"));
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
         }
       } else {
-        reject(new Error("No valid JSON found in the response"));
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
       }
     } catch (error) {
-      console.error("Error generating modules:", error);
-      reject(error);
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
     }
-  });
+  };
+
+  return attemptGeneration();
 }
 
-export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void): Promise<Topic[]> {
-  return new Promise(async (resolve, reject) => {
+export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void, maxRetries = 3): Promise<Topic[]> {
+  let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<Topic[]> => {
     try {
       let fullResponse = '';
       let currentTopics: Topic[] = [];
@@ -79,12 +96,10 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
       await streamChat(prompt, (token) => {
         fullResponse += token;
         
-        // Try to extract topics as they come in
         const lines = fullResponse.split('\n');
         for (const line of lines) {
           if (line.trim()) {
             try {
-              // Look for JSON objects in the line
               const jsonStartIndex = line.indexOf('{');
               const jsonEndIndex = line.lastIndexOf('}') + 1;
               
@@ -92,9 +107,7 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
                 const jsonStr = line.substring(jsonStartIndex, jsonEndIndex);
                 const topic = JSON.parse(jsonStr);
                 
-                // Check if this is a valid topic object
                 if (topic.title && typeof topic.relevance === 'number' && topic.description) {
-                  // Check if we already have this topic
                   const topicExists = currentTopics.some(t => t.title === topic.title);
                   
                   if (!topicExists) {
@@ -105,24 +118,38 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
                   }
                 }
               }
-            } catch (e) {
-              // Ignore parsing errors for incomplete JSON
-            }
+            } catch (e) {}
           }
         }
       });
       
-      resolve(currentTopics);
+      if (currentTopics.length > 0) {
+        return currentTopics;
+      } else {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid topics generated after max retries");
+      }
     } catch (error) {
-      console.error("Error generating topics:", error);
-      reject(error);
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
     }
-  });
+  };
 
+  return attemptGeneration();
 }
 
-export function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void): Promise<Topic> {
-  return new Promise(async (resolve, reject) => {
+export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 3): Promise<Topic> {
+  let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<Topic> => {
     try {
       let fullResponse = '';
       let currentStreamingContent = '';
@@ -152,26 +179,19 @@ export function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialConte
       await streamChat(prompt, (token) => {
         fullResponse += token;
         
-        // Try to extract partial content as it streams
         if (onStreamUpdate) {
           try {
-            // Look for content field in the streamed JSON
-            const contentMatch = fullResponse.match(/"content":\s*"([^"]*)"/);
-            if (contentMatch && contentMatch[1]) {
+            const contentMatch = fullResponse.match(/"content":\s*"([^"]*)"/);            if (contentMatch && contentMatch[1]) {
               const partialContent = contentMatch[1];
-              // Only update if content has changed
               if (partialContent !== currentStreamingContent) {
                 currentStreamingContent = partialContent;
                 onStreamUpdate(partialContent);
               }
             }
-          } catch (e) {
-            // Ignore JSON parsing errors during streaming
-          }
+          } catch (e) {}
         }
       });
       
-      // Extract JSON from the response
       const jsonStartIndex = fullResponse.indexOf('{');
       const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
       
@@ -179,21 +199,37 @@ export function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialConte
         const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
         try {
           const enrichedTopic = JSON.parse(jsonStr);
-          resolve({
+          return {
             ...topic,
             ...enrichedTopic
-          });
+          };
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
           console.log("Raw JSON:", jsonStr);
-          reject(new Error("Failed to parse generated content"));
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
         }
       } else {
-        reject(new Error("No valid JSON found in the response"));
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
       }
     } catch (error) {
-      console.error("Error generating topic detail:", error);
-      reject(error);
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
     }
-  });
+  };
+
+  return attemptGeneration();
 }

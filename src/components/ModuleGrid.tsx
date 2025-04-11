@@ -1,6 +1,7 @@
 
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import TopicCard from './TopicCard';
+import LoadingTopicCard from './LoadingTopicCard';
 import { Module, Topic } from '@/types/knowledge';
 import { ChevronRight } from 'lucide-react';
 import exp from 'node:constants';
@@ -49,16 +50,26 @@ const ModuleGrid: FC<ModuleGridProps> = ({
 
       <div className="flex-1 overflow-y-auto py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {currentModule.topics.map((topic, topicIndex) => (
-          <TopicCard
-            key={`${currentModuleIndex}-${topicIndex}`}
-            title={topic.title}
-            relevance={topic.relevance}
-            description={topic.description}
-            onClick={() => onSelectTopic(currentModuleIndex, topicIndex)}
-          />
-        ))}
-      </div>
+          {currentModule.topics.map((topic, topicIndex) => (
+            <TopicCard
+              key={`${currentModuleIndex}-${topicIndex}`}
+              title={topic.title}
+              relevance={topic.relevance}
+              description={topic.description}
+              onClick={() => onSelectTopic(currentModuleIndex, topicIndex)}
+            />
+          ))}
+          {currentModule.topics.length === 0 && (
+            Array.from({ length: 4 }).map((_, index) => (
+              <LoadingTopicCard key={`loading-${index}`} />
+            ))
+          )}
+          {currentModule.topics.length > 0 && currentModule.topics.length < 6 && (
+            Array.from({ length: 4 - currentModule.topics.length }).map((_, index) => (
+              <LoadingTopicCard key={`loading-${index}`} />
+            ))
+          )}
+        </div>
     </div> 
   </div>
   );

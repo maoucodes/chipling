@@ -1,7 +1,7 @@
 
 export async function streamChat(message: string, onToken: (token: string) => void) {
   try {
-    const response = await fetch("https://maouu-flowify-backend.hf.space/chat", {
+    const response = await fetch("https://maouu-chipling-api.hf.space/chat", {
       method: "POST",
       headers: {
         "accept": "*/*",
