@@ -16,7 +16,7 @@ import HistoryModal from '@/components/HistoryModal';
 
 const Index = () => {
   const { isAuthenticated } = useAuth();
-  const { addToHistory, updateProgress } = useHistory();
+  const { history, addToHistory, updateProgress } = useHistory();
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
@@ -123,7 +123,10 @@ const Index = () => {
     setCurrentModuleIndex(0);
     setSelectedTopic(null);
     
-    const historyEntry = history.find(entry => entry.query === query);
+    const historyEntry = Array.isArray(history) ? 
+      history.find(entry => entry.query === query) : 
+      undefined;
+      
     if (historyEntry) {
       setCurrentHistoryId(historyEntry.id);
       
