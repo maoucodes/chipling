@@ -1,6 +1,6 @@
 
 import { FC, useState } from 'react';
-import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Trash2Icon } from 'lucide-react';
@@ -62,7 +62,7 @@ const HistoryModal: FC<HistoryModalProps> = ({ isOpen, onClose, onSelectHistory 
                 <div className="p-5">
                   <h3 className="text-lg font-medium mb-1">{entry.query}</h3>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Created on: {format(new Date(entry.createdAt), 'MMM d, yyyy')}
+                    Created on: {formatDate(new Date(entry.createdAt), 'MMM d, yyyy')}
                   </p>
                   <div className="flex justify-between items-center text-sm text-muted-foreground mb-2">
                     <span>Progress: {entry.completedTopics} / {entry.totalTopics}</span>
