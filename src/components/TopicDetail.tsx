@@ -3,7 +3,7 @@ import { FC, useState, useEffect } from 'react';
 import { ArrowLeftIcon, BookmarkIcon, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Topic, Subtopic } from '@/types/knowledge';
-import { Skeleton } from '@/components/ui/skeleton';
+import LoadingTopicDetail from './LoadingTopicDetail';
 
 interface TopicDetailProps {
   topic: Topic;
@@ -14,15 +14,20 @@ interface TopicDetailProps {
 const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) => {
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
   const [isVisible, setIsVisible] = useState(false);
-  const isLoading = !topic.content && !streamingContent;
+  const isLoading = !topic || (!topic.content && !streamingContent);
 
-  // Animation effect on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!isLoading) {
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
+  if (isLoading) {
+    return <LoadingTopicDetail />;
+  }
 
   const toggleSubtopic = (index: number) => {
     setExpandedSubtopics(prev => ({

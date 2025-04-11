@@ -82,7 +82,7 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
       For each topic, include:
       - A title
       - A relevance score (1-10)
-      - A Very short description (2-3 sentences)
+      - A Very short description (2-3 sentences only)
       
       Format each topic as a separate JSON object that matches this TypeScript interface:
       {
@@ -156,7 +156,7 @@ export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partia
       
       const prompt = `Generate detailed information about the topic: "${topic.title}".
       Please include:
-      - A comprehensive content section (3-4 paragraphs)
+      - A comprehensive content section (2-3 paragraphs)
       - 2-3 subtopics, each with title, description, and content
       - 3-5 references or further reading suggestions
       
