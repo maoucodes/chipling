@@ -301,61 +301,43 @@ const Index = () => {
     }
     
     return (
-      <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4">
-        <h1 className="text-4xl font-bold mb-4">"Deep Dive into Knowledge"</h1>
+      <div className="flex flex-col items-center justify-center h-full max-w-5xl mx-auto text-center px-4">
+        <h1 className="text-4xl font-bold mb-4">Deep Dive into Knowledge</h1>
         <p className="text-lg text-muted-foreground mb-12">
           Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
         </p>
         <SearchInput onSearch={handleSearch} onLoginRequired={handleLoginRequired} />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-8">
-          <PopularTopic 
-            icon="🌌" 
-            title="Black Hole Paradoxes" 
-            onClick={() => {
-              if (isAuthenticated) {
-                handleSearch("Black Hole Paradoxes");
-              } else {
-                setPendingSearch("Black Hole Paradoxes");
-                setShowLoginModal(true);
-              }
-            }}
-          />
-          <PopularTopic 
-            icon="🔬" 
-            title="Dark Matter Theory" 
-            onClick={() => {
-              if (isAuthenticated) {
-                handleSearch("Dark Matter Theory");
-              } else {
-                setPendingSearch("Dark Matter Theory");
-                setShowLoginModal(true);
-              }
-            }}
-          />
-          <PopularTopic 
-            icon="💭" 
-            title="Dream Science Research" 
-            onClick={() => {
-              if (isAuthenticated) {
-                handleSearch("Dream Science Research");
-              } else {
-                setPendingSearch("Dream Science Research");
-                setShowLoginModal(true);
-              }
-            }}
-          />
-          <PopularTopic 
-            icon="🧘" 
-            title="Meditation Neuroscience" 
-            onClick={() => {
-              if (isAuthenticated) {
-                handleSearch("Meditation Neuroscience");
-              } else {
-                setPendingSearch("Meditation Neuroscience");
-                setShowLoginModal(true);
-              }
-            }}
-          />
+        <div className="relative w-full mt-8 overflow-hidden">
+          <div className="animate-carousel flex gap-4 py-4">
+            {[
+              { icon: "🌌", title: "Black Hole Paradoxes" },
+              { icon: "🔬", title: "Dark Matter Theory" },
+              { icon: "💭", title: "Dream Science Research" },
+              { icon: "🧘", title: "Meditation Neuroscience" },
+              { icon: "🤖", title: "Quantum Computing" },
+              { icon: "🚀", title: "Space Exploration" },
+              { icon: "🧠", title: "AI Ethics" },
+              { icon: "🔮", title: "Cognitive Science" },
+              { icon: "🧬", title: "Genetic Engineering" },
+              { icon: "🌍", title: "Climate Science" },
+              { icon: "⚛️", title: "Particle Physics" },
+              { icon: "🦠", title: "Microbiology" }
+            ].map((topic, index) => (
+              <PopularTopic
+                key={index}
+                icon={topic.icon}
+                title={topic.title}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    handleSearch(topic.title);
+                  } else {
+                    setPendingSearch(topic.title);
+                    setShowLoginModal(true);
+                  }
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -419,11 +401,11 @@ interface PopularTopicProps {
 const PopularTopic: FC<PopularTopicProps> = ({ icon, title, onClick }) => {
   return (
     <button 
-      className="p-4 bg-card/30 backdrop-blur-sm border border-border/50 rounded-md hover:bg-card/50 transition-colors flex items-center gap-3"
+      className="popular-topic group"
       onClick={onClick}
     >
-      <span className="text-xl">{icon}</span>
-      <span className="text-sm font-medium">{title}</span>
+      <span className="popular-topic-icon">{icon}</span>
+      <span className="popular-topic-title">{title}</span>
     </button>
   );
 };
