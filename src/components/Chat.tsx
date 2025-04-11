@@ -8,6 +8,7 @@ import { streamChat } from '@/services/chatService';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  id: string;
 }
 
 const Chat = () => {
@@ -24,8 +25,9 @@ const Chat = () => {
     const userMessage = message.trim();
     setMessage('');
     
-    // Add user message
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    // Add user message with unique ID
+    const userMessageId = `user-${Date.now()}`;
+    setMessages(prev => [...prev, { role: 'user', content: userMessage, id: userMessageId }]);
     
     // Reset streaming message and set loading state
     setStreamingMessage('');
@@ -38,7 +40,8 @@ const Chat = () => {
       });
       
       // When streaming is complete, add the assistant message
-      setMessages(prev => [...prev, { role: 'assistant', content: streamingMessage }]);
+      const assistantMessageId = `assistant-${Date.now()}`;
+      setMessages(prev => [...prev, { role: 'assistant', content: streamingMessage, id: assistantMessageId }]);
       setStreamingMessage('');
     } catch (error) {
       console.error('Error in chat:', error);
@@ -56,13 +59,14 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {messages.map((msg, index) => (
+        {messages.map((msg) => (
           <div
-            key={index}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            key={msg.id}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} opacity-0 animate-fade-in`}
+            style={{ animationDelay: '50ms' }}
           >
             <div
-              className={`max-w-[80%] p-3 rounded-lg ${
+              className={`max-w-[80%] p-3 rounded-lg transform transition-all duration-300 ${
                 msg.role === 'user'
                   ? 'bg-primary/20 text-foreground'
                   : 'bg-muted/30 text-foreground'
@@ -74,7 +78,7 @@ const Chat = () => {
         ))}
         
         {streamingMessage && (
-          <div className="flex justify-start">
+          <div className="flex justify-start opacity-0 animate-fade-in">
             <div className="max-w-[80%] p-3 rounded-lg bg-muted/30 text-foreground">
               <div className="whitespace-pre-wrap">
                 {streamingMessage}
@@ -85,7 +89,7 @@ const Chat = () => {
         )}
         
         {isLoading && !streamingMessage && (
-          <div className="flex justify-center">
+          <div className="flex justify-center opacity-0 animate-fade-in">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         )}
@@ -100,10 +104,14 @@ const Chat = () => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask about any topic..."
-            className="flex-1 bg-card/30 backdrop-blur-sm border border-border/50 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="flex-1 bg-card/30 backdrop-blur-sm border border-border/50 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
             disabled={isLoading}
           />
-          <Button type="submit" disabled={isLoading || !message.trim()}>
+          <Button 
+            type="submit" 
+            disabled={isLoading || !message.trim()} 
+            className="transition-all duration-300 hover:scale-105"
+          >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </form>
