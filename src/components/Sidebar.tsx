@@ -1,3 +1,4 @@
+
 import { FC, useState, useEffect } from 'react';
 import { BookmarkIcon, HistoryIcon, User2Icon, LayersIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,8 @@ interface SidebarProps {
   currentTopicIndices?: { moduleIndex: number, topicIndex: number } | null;
   currentModuleIndex?: number;
   onNextModule?: () => void;
+  onHistoryClick?: () => void;
+  completedTopics?: Record<string, boolean>;
 }
 
 const Sidebar: FC<SidebarProps> = ({ 
@@ -21,10 +24,11 @@ const Sidebar: FC<SidebarProps> = ({
   onSelectTopic,
   currentTopicIndices,
   currentModuleIndex = 0,
-  onNextModule
+  onNextModule,
+  onHistoryClick,
+  completedTopics = {}
 }) => {
   const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
-  const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
   
   const calculateProgress = (moduleIndex: number) => {
@@ -56,12 +60,8 @@ const Sidebar: FC<SidebarProps> = ({
     }));
   };
   
-  const markTopicCompleted = (moduleIndex: number, topicIndex: number) => {
-    const key = `${moduleIndex}-${topicIndex}`;
-    setCompletedTopics(prev => ({
-      ...prev,
-      [key]: true
-    }));
+  const isTopicCompleted = (moduleIndex: number, topicIndex: number) => {
+    return completedTopics[`${moduleIndex}-${topicIndex}`] === true;
   };
   
   useEffect(() => {
@@ -153,7 +153,7 @@ const Sidebar: FC<SidebarProps> = ({
                         <CollapsibleContent>
                           <div className="pl-2 space-y-1">
                             {module.topics.map((topic, topicIndex) => {
-                              const isCompleted = completedTopics[`${moduleIndex}-${topicIndex}`];
+                              const isCompleted = isTopicCompleted(moduleIndex, topicIndex);
                               const isExpanded = expandedTopics[`${moduleIndex}-${topicIndex}`];
                               const isActive = currentTopicIndices?.moduleIndex === moduleIndex && 
                                               currentTopicIndices?.topicIndex === topicIndex;
@@ -218,7 +218,6 @@ const Sidebar: FC<SidebarProps> = ({
                                         className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          markTopicCompleted(moduleIndex, topicIndex);
                                           onSelectTopic && onSelectTopic(moduleIndex, topicIndex + 1);
                                         }}
                                       >
@@ -232,7 +231,6 @@ const Sidebar: FC<SidebarProps> = ({
                                         className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          markTopicCompleted(moduleIndex, topicIndex);
                                           if (onNextModule) onNextModule();
                                         }}
                                       >
@@ -262,7 +260,11 @@ const Sidebar: FC<SidebarProps> = ({
 
         <nav className="mt-6 px-2">
           <SidebarItem icon={<BookmarkIcon className="w-5 h-5" />} label="Notes" />
-          <SidebarItem icon={<HistoryIcon className="w-5 h-5" />} label="Rabbit Holes" />
+          <SidebarItem 
+            icon={<HistoryIcon className="w-5 h-5" />} 
+            label="History" 
+            onClick={onHistoryClick}
+          />
         </nav>
       </div>
 
@@ -276,14 +278,18 @@ const Sidebar: FC<SidebarProps> = ({
 interface SidebarItemProps {
   icon: React.ReactNode;
   label: string;
+  onClick?: () => void;
 }
 
-const SidebarItem: FC<SidebarItemProps> = ({ icon, label }) => {
+const SidebarItem: FC<SidebarItemProps> = ({ icon, label, onClick }) => {
   return (
-    <div className={cn(
-      "flex items-center gap-2 p-2 my-1",
-      "hover:bg-accent/10 rounded-md transition-all cursor-pointer"
-    )}>
+    <div 
+      className={cn(
+        "flex items-center gap-2 p-2 my-1",
+        "hover:bg-accent/10 rounded-md transition-all cursor-pointer"
+      )}
+      onClick={onClick}
+    >
       {icon}
       <span>{label}</span>
     </div>

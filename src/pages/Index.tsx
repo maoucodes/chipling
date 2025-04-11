@@ -1,5 +1,5 @@
 
-import { useState, FC } from 'react';
+import { useState, FC, useEffect } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
 import SearchInput from '@/components/SearchInput';
@@ -12,11 +12,12 @@ import { generateModules, generateTopics, generateTopicDetail } from '@/services
 import { MapIcon, LayersIcon, HistoryIcon } from 'lucide-react';
 import LoginModal from '@/components/LoginModal';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRabbitHoles } from '@/contexts/RabbitHolesContext';
-import RabbitHolesView from '@/components/RabbitHolesView';
+import { useHistory } from '@/contexts/HistoryContext';
+import HistoryModal from '@/components/HistoryModal';
 
 const Index = () => {
   const { isAuthenticated } = useAuth();
+  const { addToHistory, updateProgress } = useHistory();
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
@@ -26,7 +27,33 @@ const Index = () => {
   const [streamingContent, setStreamingContent] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingSearch, setPendingSearch] = useState<string | null>(null);
-  const [showRabbitHoles, setShowRabbitHoles] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
+  const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
+  
+  const countCompletedTopics = () => {
+    return Object.values(completedTopics).filter(Boolean).length;
+  };
+  
+  // Update history progress when completed topics change
+  useEffect(() => {
+    const updateHistoryEntry = async () => {
+      if (currentHistoryId && isAuthenticated) {
+        const completed = countCompletedTopics();
+        await updateProgress(currentHistoryId, completed);
+      }
+    };
+    
+    updateHistoryEntry();
+  }, [completedTopics, currentHistoryId, isAuthenticated, updateProgress]);
+  
+  const markTopicCompleted = (moduleIndex: number, topicIndex: number) => {
+    const key = `${moduleIndex}-${topicIndex}`;
+    setCompletedTopics(prev => ({
+      ...prev,
+      [key]: true
+    }));
+  };
   
   const handleSearch = async (query: string) => {
     // Set loading state
@@ -53,6 +80,15 @@ const Index = () => {
           return newModules;
         });
       });
+      
+      // Save to history
+      if (isAuthenticated) {
+        const historyId = await addToHistory(query, generatedModules);
+        setCurrentHistoryId(historyId);
+      }
+      
+      // Reset completed topics
+      setCompletedTopics({});
     } catch (error) {
       console.error("Error generating content:", error);
       toast.error("Failed to generate content. Please try again.");
@@ -61,6 +97,14 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleSelectHistory = (query: string, historyModules: Module[]) => {
+    setModules(historyModules);
+    setSearchPerformed(true);
+    setCurrentModuleIndex(0);
+    setSelectedTopic(null);
+    toast.success(`Continuing your journey: "${query}"`);
   };
   
   const handleSelectTopic = async (moduleIndex: number, topicIndex: number) => {
@@ -85,12 +129,18 @@ const Index = () => {
           // Update the selected topic
           setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
           setStreamingContent(''); // Clear streaming content when done
+          
+          // Mark topic as completed
+          markTopicCompleted(moduleIndex, topicIndex);
         });
       } catch (error) {
         console.error("Error generating topic details:", error);
         toast.error("Failed to load detailed content. Please try again.");
         setStreamingContent(''); // Clear streaming on error
       }
+    } else {
+      // If content already exists, mark as completed
+      markTopicCompleted(moduleIndex, topicIndex);
     }
   };
   
@@ -143,21 +193,11 @@ const Index = () => {
     }
   };
 
-  const handleToggleRabbitHoles = () => {
-    setShowRabbitHoles(!showRabbitHoles);
+  const handleToggleHistory = () => {
+    setShowHistoryModal(!showHistoryModal);
   };
   
   const renderContent = () => {
-    // If showing rabbit holes view
-    if (showRabbitHoles) {
-      return (
-        <RabbitHolesView 
-          onSelectRabbitHole={handleSearch}
-          onClose={() => setShowRabbitHoles(false)}
-        />
-      );
-    }
-    
     // If a topic is selected, show the topic detail view
     if (selectedTopic !== null) {
       return (
@@ -182,10 +222,10 @@ const Index = () => {
             <h1 className="text-3xl font-bold">Exploring Knowledge</h1>
             <div className="flex gap-2">
               <button 
-                onClick={handleToggleRabbitHoles}
+                onClick={handleToggleHistory}
                 className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors"
               >
-                <span>Rabbit Holes</span>
+                <span>History</span>
                 <HistoryIcon className="w-4 h-4" />
               </button>
               <button 
@@ -309,6 +349,8 @@ const Index = () => {
         currentTopicIndices={currentTopicIndices}
         currentModuleIndex={currentModuleIndex}
         onNextModule={handleNextModule}
+        onHistoryClick={handleToggleHistory}
+        completedTopics={completedTopics}
       >
         {renderContent()}
         {renderLearningPath()}
@@ -318,6 +360,12 @@ const Index = () => {
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)}
         onSuccess={handleLoginSuccess}
+      />
+      
+      <HistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        onSelectHistory={handleSelectHistory}
       />
     </>
   );

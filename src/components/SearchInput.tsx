@@ -4,7 +4,6 @@ import { SearchIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRabbitHoles } from '@/contexts/RabbitHolesContext';
 
 interface SearchInputProps {
   onSearch: (query: string) => void;
@@ -14,7 +13,6 @@ interface SearchInputProps {
 const SearchInput: FC<SearchInputProps> = ({ onSearch, onLoginRequired }) => {
   const [query, setQuery] = useState('');
   const { isAuthenticated } = useAuth();
-  const { addRabbitHole } = useRabbitHoles();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +29,6 @@ const SearchInput: FC<SearchInputProps> = ({ onSearch, onLoginRequired }) => {
     }
     
     try {
-      // Save the search query as a rabbit hole
-      await addRabbitHole(query);
       // Proceed with the search
       onSearch(query);
     } catch (error) {

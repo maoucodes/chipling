@@ -2,8 +2,9 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
-import { getDatabase, ref, set, get, push, onValue } from "firebase/database";
+import { getDatabase, ref, set, get, push, onValue, update, remove } from "firebase/database";
 import { toast } from "sonner";
+import { Module, Topic } from "@/types/knowledge";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -33,12 +34,16 @@ export interface FirebaseUser {
   subscriptionType: string;
 }
 
-// Rabbit Hole type
-export interface RabbitHole {
+// History Entry type
+export interface HistoryEntry {
   id: string;
   query: string;
   createdAt: number;
+  lastAccessedAt: number;
+  modules: Module[];
   progress: number;
+  totalTopics: number;
+  completedTopics: number;
 }
 
 // Authentication functions
@@ -138,56 +143,83 @@ export const getUserData = async (uid: string): Promise<FirebaseUser | null> => 
   }
 };
 
-// Rabbit Holes functions
-export const saveRabbitHole = async (uid: string, query: string): Promise<string> => {
+// History functions
+export const saveSearchHistory = async (uid: string, query: string, modules: Module[]): Promise<string> => {
   try {
-    const rabbitHolesRef = ref(database, `rabbitHoles/${uid}`);
-    const newRabbitHoleRef = push(rabbitHolesRef);
+    const historyRef = ref(database, `history/${uid}`);
+    const newHistoryRef = push(historyRef);
     
-    const rabbitHole = {
-      id: newRabbitHoleRef.key,
+    const totalTopics = modules.reduce((total, module) => total + module.topics.length, 0);
+    
+    const historyEntry = {
+      id: newHistoryRef.key,
       query,
       createdAt: Date.now(),
-      progress: 0
+      lastAccessedAt: Date.now(),
+      modules,
+      progress: 0,
+      totalTopics,
+      completedTopics: 0
     };
     
-    await set(newRabbitHoleRef, rabbitHole);
-    return newRabbitHoleRef.key as string;
+    await set(newHistoryRef, historyEntry);
+    return newHistoryRef.key as string;
   } catch (error) {
-    console.error("Error saving rabbit hole", error);
+    console.error("Error saving search history", error);
     throw error;
   }
 };
 
-export const updateRabbitHoleProgress = async (uid: string, rabbitHoleId: string, progress: number): Promise<void> => {
+export const updateHistoryProgress = async (uid: string, historyId: string, completedTopics: number): Promise<void> => {
   try {
-    const rabbitHoleRef = ref(database, `rabbitHoles/${uid}/${rabbitHoleId}`);
-    await set(rabbitHoleRef, { progress });
+    const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
+    const snapshot = await get(historyEntryRef);
+    
+    if (snapshot.exists()) {
+      const historyEntry = snapshot.val();
+      const progress = Math.round((completedTopics / historyEntry.totalTopics) * 100);
+      
+      await update(historyEntryRef, { 
+        completedTopics, 
+        progress,
+        lastAccessedAt: Date.now()
+      });
+    }
   } catch (error) {
-    console.error("Error updating rabbit hole progress", error);
+    console.error("Error updating history progress", error);
     throw error;
   }
 };
 
-export const getRabbitHoles = async (uid: string): Promise<RabbitHole[]> => {
+export const deleteHistoryEntry = async (uid: string, historyId: string): Promise<void> => {
   try {
-    const rabbitHolesRef = ref(database, `rabbitHoles/${uid}`);
+    const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
+    await remove(historyEntryRef);
+  } catch (error) {
+    console.error("Error deleting history entry", error);
+    throw error;
+  }
+};
+
+export const getSearchHistory = async (uid: string): Promise<HistoryEntry[]> => {
+  try {
+    const historyRef = ref(database, `history/${uid}`);
     return new Promise((resolve) => {
-      onValue(rabbitHolesRef, (snapshot) => {
+      onValue(historyRef, (snapshot) => {
         if (snapshot.exists()) {
-          const rabbitHolesData = snapshot.val();
-          const rabbitHoles = Object.keys(rabbitHolesData).map(key => ({
-            ...rabbitHolesData[key],
+          const historyData = snapshot.val();
+          const historyEntries = Object.keys(historyData).map(key => ({
+            ...historyData[key],
             id: key
           }));
-          resolve(rabbitHoles.sort((a, b) => b.createdAt - a.createdAt));
+          resolve(historyEntries.sort((a, b) => b.lastAccessedAt - a.lastAccessedAt));
         } else {
           resolve([]);
         }
       });
     });
   } catch (error) {
-    console.error("Error getting rabbit holes", error);
+    console.error("Error getting search history", error);
     return [];
   }
 };

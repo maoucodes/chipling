@@ -8,14 +8,25 @@ interface TopicCardProps {
   relevance?: number;
   description: string;
   onClick?: () => void;
+  isBookmarked?: boolean;
+  onBookmark?: () => void;
 }
 
 const TopicCard: FC<TopicCardProps> = ({ 
   title, 
   relevance = 0, 
   description,
-  onClick 
+  onClick,
+  isBookmarked = false,
+  onBookmark
 }) => {
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onBookmark) {
+      onBookmark();
+    }
+  };
+
   return (
     <div 
       className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-md overflow-hidden hover:bg-card/50 transition-all duration-300 opacity-0 animate-fade-in"
@@ -25,7 +36,13 @@ const TopicCard: FC<TopicCardProps> = ({
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-medium">{title}</h3>
           <div className="flex gap-2">
-            <button className="p-2 rounded-full hover:bg-accent/20 transition-colors">
+            <button 
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                isBookmarked ? "text-primary bg-primary/20" : "hover:bg-accent/20"
+              )}
+              onClick={handleBookmarkClick}
+            >
               <BookmarkIcon className="w-4 h-4" />
             </button>
             <button className="p-2 rounded-full hover:bg-accent/20 transition-colors">
