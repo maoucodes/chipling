@@ -15,6 +15,7 @@ interface SidebarProps {
   currentModuleIndex?: number;
   onNextModule?: () => void;
   onHistoryClick?: () => void;
+  onNewSearch?: () => void;
   completedTopics?: Record<string, boolean>;
 }
 
@@ -26,6 +27,7 @@ const Sidebar: FC<SidebarProps> = ({
   currentModuleIndex = 0,
   onNextModule,
   onHistoryClick,
+  onNewSearch,
   completedTopics = {}
 }) => {
   const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
@@ -89,22 +91,25 @@ const Sidebar: FC<SidebarProps> = ({
   
   return (
     <div className="chipling-sidebar">
-      <div className="flex items-center p-4 gap-2 border-b border-border/50">
-        <div className="bg-white/10 rounded-md p-1">
+      <div className="flex items-center min-h-[60px] px-4 gap-3 border-b border-border/50">
+        <div className="bg-white/10 rounded-md p-1.5 flex items-center justify-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <span className="font-semibold text-lg">chipling</span>
+        <span className="font-semibold text-lg whitespace-nowrap">chipling</span>
       </div>
 
       <div className="p-4 border-b border-border/50">
-        <button className={cn(
-          "flex items-center gap-2 w-full p-2",
-          "hover:bg-accent/10 rounded-md transition-all"
-        )}>
+        <button 
+          onClick={onNewSearch}
+          className={cn(
+            "flex items-center gap-2 w-full p-2",
+            "hover:bg-accent/10 rounded-md transition-all"
+          )}
+        >
           <PlusIcon className="w-5 h-5" />
           <span>New Search</span>
         </button>

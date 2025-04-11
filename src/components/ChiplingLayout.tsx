@@ -15,6 +15,7 @@ interface ChiplingLayoutProps {
   currentModuleIndex?: number;
   onNextModule?: () => void;
   onHistoryClick?: () => void;
+  onNewSearch?: () => void;
   completedTopics?: Record<string, boolean>;
 }
 
@@ -27,6 +28,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
   currentModuleIndex = 0,
   onNextModule,
   onHistoryClick,
+  onNewSearch,
   completedTopics = {}
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,6 +45,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
           currentModuleIndex={currentModuleIndex}
           onNextModule={onNextModule}
           onHistoryClick={onHistoryClick}
+          onNewSearch={onNewSearch}
           completedTopics={completedTopics}
         />
       </div>
@@ -68,6 +71,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
                 setSidebarOpen(false);
               }
             }}
+            onNewSearch={onNewSearch}
             completedTopics={completedTopics}
           />
         </SheetContent>

@@ -29,8 +29,8 @@ const ModuleGrid: FC<ModuleGridProps> = ({
   }
   
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in max-w-7xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-semibold">
           Module {currentModuleIndex + 1}: {currentModule.title}
         </h2>
@@ -38,14 +38,14 @@ const ModuleGrid: FC<ModuleGridProps> = ({
         {currentModuleIndex < modules.length - 1 && onNextModule && (
           <button 
             onClick={onNextModule}
-            className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors"
+            className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors whitespace-nowrap"
           >
             Next Module <ChevronRight className="w-4 h-4" />
           </button>
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {currentModule.topics.map((topic, topicIndex) => (
           <TopicCard
             key={`${currentModuleIndex}-${topicIndex}`}

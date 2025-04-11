@@ -35,8 +35,7 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
   const displayContent = streamingContent || topic.content;
 
   return (
-    <div className={`max-w-4xl mx-auto transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-      <Button 
+    <div className={`container mx-auto px-4 lg:px-8 max-w-7xl mt-auto transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>      <Button 
         variant="ghost" 
         size="sm" 
         className="mb-4 transition-all duration-300 hover:translate-x-[-4px]" 
@@ -46,10 +45,10 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
         Back to all topics
       </Button>
 
-      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-md p-6 mb-6 transition-all duration-300 hover:shadow-lg">
-        <div className="flex justify-between items-start mb-6">
+      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4 lg:p-6 mb-6 transition-all duration-300 hover:shadow-lg overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl font-semibold">{topic.title}</h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 self-end sm:self-auto">
             <button className="p-2 rounded-full hover:bg-accent/20 transition-colors duration-300 hover:scale-110">
               <BookmarkIcon className="w-5 h-5" />
             </button>
@@ -79,7 +78,7 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
               <Skeleton className="h-4 w-full" />
             </div>
           ) : (
-            <div className="text-foreground mb-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            <div className="text-foreground mb-8 animate-fade-in whitespace-pre-wrap" style={{ animationDelay: '400ms' }}>
               {displayContent}
               {streamingContent && <span className="ml-1 animate-pulse">▋</span>}
             </div>

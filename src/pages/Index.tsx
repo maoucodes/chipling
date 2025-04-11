@@ -179,6 +179,16 @@ const Index = () => {
     }
   };
   
+  const handleNewSearch = () => {
+    setSearchPerformed(false);
+    setModules([]);
+    setSelectedTopic(null);
+    setStreamingContent('');
+    setCurrentModuleIndex(0);
+    setCompletedTopics({});
+    setCurrentHistoryId(null);
+  };
+
   const handleBackToTopics = () => {
     setSelectedTopic(null);
     setStreamingContent('');
@@ -248,7 +258,7 @@ const Index = () => {
     
     if (searchPerformed && modules.length > 0) {
       return (
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto mt-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Exploring Knowledge</h1>
             <div className="flex gap-2">
@@ -378,6 +388,7 @@ const Index = () => {
         currentModuleIndex={currentModuleIndex}
         onNextModule={handleNextModule}
         onHistoryClick={handleToggleHistory}
+        onNewSearch={handleNewSearch}
         completedTopics={completedTopics}
       >
         {renderContent()}
