@@ -146,6 +146,7 @@ export const getUserData = async (uid: string): Promise<FirebaseUser | null> => 
 // History functions
 export const saveSearchHistory = async (uid: string, query: string, modules: Module[]): Promise<string> => {
   try {
+    console.log(`Saving search history for user ${uid}: ${query}`);
     const historyRef = ref(database, `history/${uid}`);
     const newHistoryRef = push(historyRef);
     
@@ -163,6 +164,7 @@ export const saveSearchHistory = async (uid: string, query: string, modules: Mod
     };
     
     await set(newHistoryRef, historyEntry);
+    console.log(`History entry saved with ID: ${newHistoryRef.key}`);
     return newHistoryRef.key as string;
   } catch (error) {
     console.error("Error saving search history", error);
@@ -172,6 +174,7 @@ export const saveSearchHistory = async (uid: string, query: string, modules: Mod
 
 export const updateHistoryProgress = async (uid: string, historyId: string, completedTopics: number): Promise<void> => {
   try {
+    console.log(`Updating history progress for user ${uid}, history ${historyId}: ${completedTopics} topics`);
     const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
     const snapshot = await get(historyEntryRef);
     
@@ -184,6 +187,9 @@ export const updateHistoryProgress = async (uid: string, historyId: string, comp
         progress,
         lastAccessedAt: Date.now()
       });
+      console.log(`Updated progress to ${progress}%`);
+    } else {
+      console.error(`History entry ${historyId} not found for user ${uid}`);
     }
   } catch (error) {
     console.error("Error updating history progress", error);
@@ -193,8 +199,10 @@ export const updateHistoryProgress = async (uid: string, historyId: string, comp
 
 export const deleteHistoryEntry = async (uid: string, historyId: string): Promise<void> => {
   try {
+    console.log(`Deleting history entry ${historyId} for user ${uid}`);
     const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
     await remove(historyEntryRef);
+    console.log(`History entry deleted successfully`);
   } catch (error) {
     console.error("Error deleting history entry", error);
     throw error;
@@ -203,6 +211,7 @@ export const deleteHistoryEntry = async (uid: string, historyId: string): Promis
 
 export const getSearchHistory = async (uid: string): Promise<HistoryEntry[]> => {
   try {
+    console.log(`Getting search history for user ${uid}`);
     const historyRef = ref(database, `history/${uid}`);
     return new Promise((resolve) => {
       onValue(historyRef, (snapshot) => {
@@ -212,8 +221,10 @@ export const getSearchHistory = async (uid: string): Promise<HistoryEntry[]> => 
             ...historyData[key],
             id: key
           }));
+          console.log(`Found ${historyEntries.length} history entries`);
           resolve(historyEntries.sort((a, b) => b.lastAccessedAt - a.lastAccessedAt));
         } else {
+          console.log(`No history entries found for user ${uid}`);
           resolve([]);
         }
       });

@@ -1,4 +1,3 @@
-
 import { useState, FC, useEffect } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
@@ -40,7 +39,12 @@ const Index = () => {
     const updateHistoryEntry = async () => {
       if (currentHistoryId && isAuthenticated) {
         const completed = countCompletedTopics();
-        await updateProgress(currentHistoryId, completed);
+        try {
+          await updateProgress(currentHistoryId, completed);
+          console.log(`Updated progress for history ID ${currentHistoryId}: ${completed} topics completed`);
+        } catch (error) {
+          console.error("Error updating history progress:", error);
+        }
       }
     };
     
@@ -60,6 +64,7 @@ const Index = () => {
     setIsLoading(true);
     setSearchPerformed(true);
     setCurrentModuleIndex(0); // Reset to first module on new search
+    setCompletedTopics({}); // Reset completed topics for new search
     
     try {
       // Generate only module titles initially
@@ -81,14 +86,20 @@ const Index = () => {
         });
       });
       
-      // Save to history
+      // Save to history if authenticated
       if (isAuthenticated) {
-        const historyId = await addToHistory(query, generatedModules);
-        setCurrentHistoryId(historyId);
+        try {
+          console.log("Saving search to history:", query);
+          const historyId = await addToHistory(query, generatedModules);
+          console.log("History saved with ID:", historyId);
+          setCurrentHistoryId(historyId);
+        } catch (error) {
+          console.error("Error saving to history:", error);
+          toast.error("Failed to save your journey to history");
+        }
+      } else {
+        console.log("User not authenticated, not saving search to history");
       }
-      
-      // Reset completed topics
-      setCompletedTopics({});
     } catch (error) {
       console.error("Error generating content:", error);
       toast.error("Failed to generate content. Please try again.");
