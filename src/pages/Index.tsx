@@ -194,29 +194,32 @@ const Index = () => {
     setStreamingContent('');
   };
   
+  const loadModuleTopics = async (moduleIndex: number) => {
+    if (modules[moduleIndex].topics.length === 0) {
+      try {
+        const updatedModules = [...modules];
+        updatedModules[moduleIndex].topics = [];
+        setModules(updatedModules);
+        
+        await generateTopics(modules[moduleIndex].title, (topic) => {
+          setModules(currentModules => {
+            const newModules = [...currentModules];
+            newModules[moduleIndex].topics = [...newModules[moduleIndex].topics, topic];
+            return newModules;
+          });
+        });
+      } catch (error) {
+        console.error("Error loading module topics:", error);
+        toast.error("Failed to load module topics. Please try again.");
+      }
+    }
+  };
+
   const handleNextModule = async () => {
     if (currentModuleIndex < modules.length - 1) {
       const nextIndex = currentModuleIndex + 1;
       setCurrentModuleIndex(nextIndex);
-      
-      if (modules[nextIndex].topics.length === 0) {
-        try {
-          const updatedModules = [...modules];
-          updatedModules[nextIndex].topics = [];
-          setModules(updatedModules);
-          
-          await generateTopics(modules[nextIndex].title, (topic) => {
-            setModules(currentModules => {
-              const newModules = [...currentModules];
-              newModules[nextIndex].topics = [...newModules[nextIndex].topics, topic];
-              return newModules;
-            });
-          });
-        } catch (error) {
-          console.error("Error loading module topics:", error);
-          toast.error("Failed to load module topics. Please try again.");
-        }
-      }
+      await loadModuleTopics(nextIndex);
       
       toast.success(`Navigating to Module ${nextIndex + 1}`);
     }
@@ -347,9 +350,8 @@ const Index = () => {
     if (showLearningPath && modules.length > 0) {
       return (
         <LearningPath 
-          module={modules[currentModuleIndex]} 
+          modules={modules} 
           currentModuleIndex={currentModuleIndex} 
-          totalModules={modules.length} 
           onClose={() => setShowLearningPath(false)} 
         />
       );

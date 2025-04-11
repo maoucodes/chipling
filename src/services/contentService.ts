@@ -2,7 +2,7 @@
 import { Module, Topic } from '@/types/knowledge';
 import { streamChat } from './chatService';
 
-export async function generateModules(searchQuery: string, maxRetries = 3): Promise<Module[]> {
+export async function generateModules(searchQuery: string, maxRetries = 5): Promise<Module[]> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<Module[]> => {
@@ -67,7 +67,7 @@ export async function generateModules(searchQuery: string, maxRetries = 3): Prom
   return attemptGeneration();
 }
 
-export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void, maxRetries = 3): Promise<Topic[]> {
+export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void, maxRetries = 5): Promise<Topic[]> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<Topic[]> => {
@@ -146,7 +146,7 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
   return attemptGeneration();
 }
 
-export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 3): Promise<Topic> {
+export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 5): Promise<Topic> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<Topic> => {
