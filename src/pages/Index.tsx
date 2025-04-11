@@ -34,7 +34,6 @@ const Index = () => {
     return Object.values(completedTopics).filter(Boolean).length;
   };
   
-  // Update history progress when completed topics change
   useEffect(() => {
     const updateHistoryEntry = async () => {
       if (currentHistoryId && isAuthenticated) {
@@ -60,20 +59,17 @@ const Index = () => {
   };
   
   const handleSearch = async (query: string) => {
-    // Set loading state
     setIsLoading(true);
     setSearchPerformed(true);
-    setCurrentModuleIndex(0); // Reset to first module on new search
-    setCompletedTopics({}); // Reset completed topics for new search
+    setCurrentModuleIndex(0);
+    setCompletedTopics({});
     
     try {
-      // Generate only module titles initially
       const generatedModules = await generateModules(query);
       setModules(generatedModules.map(module => ({ ...module, topics: [] })));
       toast.success(`Found knowledge modules for "${query}"`);
       setIsLoading(false);
       
-      // Load topics for the first module with streaming updates
       const updatedModules = [...generatedModules];
       updatedModules[0].topics = [];
       setModules(updatedModules);
@@ -86,7 +82,6 @@ const Index = () => {
         });
       });
       
-      // Save to history if authenticated
       if (isAuthenticated) {
         try {
           console.log("Saving search to history:", query);
@@ -103,7 +98,6 @@ const Index = () => {
     } catch (error) {
       console.error("Error generating content:", error);
       toast.error("Failed to generate content. Please try again.");
-      // Set empty modules if failed
       setModules([]);
     } finally {
       setIsLoading(false);
@@ -111,46 +105,73 @@ const Index = () => {
   };
   
   const handleSelectHistory = (query: string, historyModules: Module[]) => {
-    setModules(historyModules);
+    console.log("Selected history modules:", historyModules);
+    
+    if (!historyModules || !Array.isArray(historyModules)) {
+      toast.error("Invalid history data");
+      console.error("Invalid history modules data:", historyModules);
+      return;
+    }
+    
+    const validatedModules = historyModules.map(module => ({
+      title: module.title || "Untitled Module",
+      topics: Array.isArray(module.topics) ? module.topics : []
+    }));
+    
+    setModules(validatedModules);
     setSearchPerformed(true);
     setCurrentModuleIndex(0);
     setSelectedTopic(null);
+    
+    const historyEntry = history.find(entry => entry.query === query);
+    if (historyEntry) {
+      setCurrentHistoryId(historyEntry.id);
+      
+      const completedCount = historyEntry.completedTopics || 0;
+      const newCompletedTopics: Record<string, boolean> = {};
+      
+      let markedCount = 0;
+      validatedModules.forEach((module, moduleIndex) => {
+        module.topics.forEach((_, topicIndex) => {
+          if (markedCount < completedCount) {
+            newCompletedTopics[`${moduleIndex}-${topicIndex}`] = true;
+            markedCount++;
+          }
+        });
+      });
+      
+      setCompletedTopics(newCompletedTopics);
+    }
+    
     toast.success(`Continuing your journey: "${query}"`);
   };
   
   const handleSelectTopic = async (moduleIndex: number, topicIndex: number) => {
     const topic = modules[moduleIndex].topics[topicIndex];
     
-    // First set with basic info to show something is happening
     setSelectedTopic({ moduleIndex, topicIndex, topic });
-    setStreamingContent(''); // Reset streaming content
+    setStreamingContent('');
     
-    // Then fetch detailed content if we don't have it yet
     if (!topic.content) {
       try {
-        // Begin streaming content
         generateTopicDetail(topic, (partialContent) => {
           setStreamingContent(partialContent);
         }).then(enrichedTopic => {
-          // Update the module with the enriched topic
           const updatedModules = [...modules];
           updatedModules[moduleIndex].topics[topicIndex] = enrichedTopic;
           setModules(updatedModules);
           
-          // Update the selected topic
           setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
-          setStreamingContent(''); // Clear streaming content when done
+          setStreamingContent('');
           
-          // Mark topic as completed
           markTopicCompleted(moduleIndex, topicIndex);
         });
       } catch (error) {
         console.error("Error generating topic details:", error);
         toast.error("Failed to load detailed content. Please try again.");
-        setStreamingContent(''); // Clear streaming on error
+        setStreamingContent('');
       }
     } else {
-      // If content already exists, mark as completed
       markTopicCompleted(moduleIndex, topicIndex);
     }
   };
@@ -165,7 +186,6 @@ const Index = () => {
       const nextIndex = currentModuleIndex + 1;
       setCurrentModuleIndex(nextIndex);
       
-      // Load topics for the next module if they haven't been loaded yet
       if (modules[nextIndex].topics.length === 0) {
         try {
           const updatedModules = [...modules];
@@ -209,7 +229,6 @@ const Index = () => {
   };
   
   const renderContent = () => {
-    // If a topic is selected, show the topic detail view
     if (selectedTopic !== null) {
       return (
         <TopicDetail 
@@ -220,12 +239,10 @@ const Index = () => {
       );
     }
     
-    // If content is loading, show the loading state
     if (isLoading) {
       return <LoadingContent />;
     }
     
-    // If search has been performed, show the module grid
     if (searchPerformed && modules.length > 0) {
       return (
         <div className="container mx-auto px-4">
@@ -258,7 +275,6 @@ const Index = () => {
       );
     }
     
-    // If search performed but no results
     if (searchPerformed && modules.length === 0 && !isLoading) {
       return (
         <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4">
@@ -271,7 +287,6 @@ const Index = () => {
       );
     }
     
-    // Initial state - show landing content
     return (
       <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4">
         <h1 className="text-4xl font-bold mb-4">"Deep Dive into Knowledge"</h1>
@@ -347,7 +362,6 @@ const Index = () => {
     return null;
   };
   
-  // Determine the current module for the sidebar
   const currentModule = selectedTopic ? modules[selectedTopic.moduleIndex] : (modules[currentModuleIndex] || null);
   const currentTopicIndices = selectedTopic ? { moduleIndex: selectedTopic.moduleIndex, topicIndex: selectedTopic.topicIndex } : null;
   

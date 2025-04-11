@@ -20,7 +20,20 @@ const HistoryModal: FC<HistoryModalProps> = ({ isOpen, onClose, onSelectHistory 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const handleContinue = (entry: any) => {
-    onSelectHistory(entry.query, entry.modules);
+    if (!entry.modules || !Array.isArray(entry.modules)) {
+      toast.error("Cannot continue this journey due to missing data");
+      console.error("Missing modules data in history entry:", entry);
+      return;
+    }
+    
+    // Ensure each module has at least an empty topics array if it's missing
+    const validModules = entry.modules.map(module => ({
+      ...module,
+      topics: Array.isArray(module.topics) ? module.topics : []
+    }));
+    
+    console.log("Continuing journey with modules:", validModules);
+    onSelectHistory(entry.query, validModules);
     onClose();
   };
   

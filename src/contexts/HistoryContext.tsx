@@ -44,8 +44,20 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
         try {
           console.log(`Fetching history for user ${user.uid}`);
           const entries = await getSearchHistory(user.uid);
-          setHistory(entries);
-          console.log(`Fetched ${entries.length} history entries`);
+          
+          // Ensure all entries have valid module structures
+          const validEntries = entries.map(entry => ({
+            ...entry,
+            modules: Array.isArray(entry.modules) 
+              ? entry.modules.map(module => ({
+                  ...module,
+                  topics: Array.isArray(module.topics) ? module.topics : []
+                }))
+              : []
+          }));
+          
+          setHistory(validEntries);
+          console.log(`Fetched ${validEntries.length} history entries`);
         } catch (error) {
           console.error('Error fetching history:', error);
         } finally {
@@ -67,7 +79,14 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
     }
 
     console.log(`Adding to history for user ${user.uid}: ${query}`);
-    const historyId = await saveSearchHistory(user.uid, query, modules);
+    
+    // Ensure modules have proper structure before saving
+    const validModules = modules.map(module => ({
+      ...module,
+      topics: Array.isArray(module.topics) ? module.topics : []
+    }));
+    
+    const historyId = await saveSearchHistory(user.uid, query, validModules);
     
     // Update local state with the new entry
     const newEntry: HistoryEntry = {
@@ -75,9 +94,9 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
       query,
       createdAt: Date.now(),
       lastAccessedAt: Date.now(),
-      modules,
+      modules: validModules,
       progress: 0,
-      totalTopics: modules.reduce((total, module) => total + module.topics.length, 0),
+      totalTopics: validModules.reduce((total, module) => total + module.topics.length, 0),
       completedTopics: 0
     };
     
