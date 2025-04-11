@@ -4,17 +4,29 @@ import { ArrowLeftIcon, BookmarkIcon, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Topic, Subtopic } from '@/types/knowledge';
 import LoadingTopicDetail from './LoadingTopicDetail';
+import { useHistory } from '@/contexts/HistoryContext';
 
 interface TopicDetailProps {
   topic: Topic;
   onBack: () => void;
   streamingContent?: string;
+  historyId?: string | null;
+  moduleIndex?: number;
+  topicIndex?: number;
 }
 
-const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) => {
+const TopicDetail: FC<TopicDetailProps> = ({ 
+  topic, 
+  onBack, 
+  streamingContent,
+  historyId,
+  moduleIndex,
+  topicIndex 
+}) => {
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
   const [isVisible, setIsVisible] = useState(false);
   const isLoading = !topic || (!topic.content && !streamingContent);
+  const { saveTopicDetail } = useHistory();
 
   useEffect(() => {
     if (!isLoading) {
@@ -24,6 +36,21 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
       return () => clearTimeout(timer);
     }
   }, [isLoading]);
+  
+  // Save the topic details to Firebase when content is loaded
+  useEffect(() => {
+    if (!isLoading && topic.content && historyId !== undefined && moduleIndex !== undefined && topicIndex !== undefined) {
+      const saveTopic = async () => {
+        try {
+          await saveTopicDetail(historyId!, moduleIndex, topicIndex, topic);
+        } catch (error) {
+          console.error("Error saving topic detail:", error);
+        }
+      };
+      
+      saveTopic();
+    }
+  }, [topic.content, isLoading, historyId, moduleIndex, topicIndex, topic, saveTopicDetail]);
 
   if (isLoading) {
     return <LoadingTopicDetail />;

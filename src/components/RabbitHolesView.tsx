@@ -20,6 +20,20 @@ const RabbitHolesView: React.FC<RabbitHolesViewProps> = ({ onSelectRabbitHole, o
     onClose();
   };
 
+  // Calculate average module progress for each history entry
+  const calculateModuleProgress = (entry: any) => {
+    if (!entry.moduleProgress || Object.keys(entry.moduleProgress).length === 0) {
+      return entry.progress || 0;
+    }
+    
+    // Calculate average of module progress values
+    const values = Object.values(entry.moduleProgress) as number[];
+    if (values.length === 0) return 0;
+    
+    const sum = values.reduce((acc: number, val: number) => acc + val, 0);
+    return Math.round(sum / values.length);
+  };
+
   return (
     <div className="p-4 space-y-4">
       <div className="flex justify-between items-center">
@@ -36,36 +50,40 @@ const RabbitHolesView: React.FC<RabbitHolesViewProps> = ({ onSelectRabbitHole, o
       ) : history.length > 0 ? (
         <ScrollArea className="h-[500px]">
           <div className="space-y-3">
-            {history.map((entry) => (
-              <div 
-                key={entry.id} 
-                className="border border-border/50 rounded-md p-4 hover:bg-accent/5 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2 flex-1">
-                    <h3 
-                      className="font-medium cursor-pointer hover:text-primary" 
+            {history.map((entry) => {
+              const moduleProgress = calculateModuleProgress(entry);
+              
+              return (
+                <div 
+                  key={entry.id} 
+                  className="border border-border/50 rounded-md p-4 hover:bg-accent/5 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2 flex-1">
+                      <h3 
+                        className="font-medium cursor-pointer hover:text-primary" 
+                        onClick={() => handleSelectRabbitHole(entry.query)}
+                      >
+                        {entry.query}
+                      </h3>
+                      <div className="text-sm text-muted-foreground flex justify-between">
+                        <span>Created {formatDistance(new Date(entry.createdAt), new Date(), { addSuffix: true })}</span>
+                        <span>{moduleProgress}% Complete</span>
+                      </div>
+                      <Progress value={moduleProgress} className="h-1.5" />
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="ml-2" 
                       onClick={() => handleSelectRabbitHole(entry.query)}
                     >
-                      {entry.query}
-                    </h3>
-                    <div className="text-sm text-muted-foreground flex justify-between">
-                      <span>Created {formatDistance(new Date(entry.createdAt), new Date(), { addSuffix: true })}</span>
-                      <span>{entry.progress}% Complete</span>
-                    </div>
-                    <Progress value={entry.progress} className="h-1.5" />
+                      <ChevronRightIcon className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="ml-2" 
-                    onClick={() => handleSelectRabbitHole(entry.query)}
-                  >
-                    <ChevronRightIcon className="h-4 w-4" />
-                  </Button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </ScrollArea>
       ) : (

@@ -5,6 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Module, Topic } from '@/types/knowledge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useNavigate } from 'react-router-dom';
 
 interface ChiplingLayoutProps {
   children: ReactNode;
@@ -32,11 +33,17 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
   completedTopics = {}
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
+    setSidebarOpen(false);
+  };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Desktop sidebar */}
-      <div className="hidden md:block md:w-[240px] h-screen flex-shrink-0 border-r border-border/50">
+      {/* Desktop sidebar - increased width from 240px to 280px */}
+      <div className="hidden md:block md:w-[280px] h-screen flex-shrink-0 border-r border-border/50">
         <Sidebar 
           currentModule={currentModule} 
           modules={modules}
@@ -46,13 +53,14 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
           onNextModule={onNextModule}
           onHistoryClick={onHistoryClick}
           onNewSearch={onNewSearch}
+          onSettingsClick={handleSettingsClick}
           completedTopics={completedTopics}
         />
       </div>
       
-      {/* Mobile sidebar */}
+      {/* Mobile sidebar - increased width from 85vw to 90vw and max-width from sm:w-72 to sm:w-80 */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-[85vw] sm:w-72 max-w-sm">
+        <SheetContent side="left" className="p-0 w-[90vw] sm:w-80 max-w-sm">
           <Sidebar 
             currentModule={currentModule} 
             modules={modules}
@@ -72,6 +80,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
               }
             }}
             onNewSearch={onNewSearch}
+            onSettingsClick={handleSettingsClick}
             completedTopics={completedTopics}
           />
         </SheetContent>

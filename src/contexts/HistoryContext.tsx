@@ -6,15 +6,17 @@ import {
   getSearchHistory, 
   saveSearchHistory, 
   updateHistoryProgress,
-  deleteHistoryEntry
+  deleteHistoryEntry,
+  saveTopicDetails
 } from '@/services/firebaseService';
-import { Module } from '@/types/knowledge';
+import { Module, Topic } from '@/types/knowledge';
 
 interface HistoryContextType {
   history: HistoryEntry[];
   loading: boolean;
   addToHistory: (query: string, modules: Module[]) => Promise<string>;
-  updateProgress: (historyId: string, completedTopics: number) => Promise<void>;
+  updateProgress: (historyId: string, completedTopics: number, moduleProgress: Record<number, number>) => Promise<void>;
+  saveTopicDetail: (historyId: string, moduleIndex: number, topicIndex: number, topic: Topic) => Promise<void>;
   deleteEntry: (historyId: string) => Promise<void>;
 }
 
@@ -23,6 +25,7 @@ const HistoryContext = createContext<HistoryContextType>({
   loading: false,
   addToHistory: async () => '',
   updateProgress: async () => {},
+  saveTopicDetail: async () => {},
   deleteEntry: async () => {}
 });
 
@@ -53,7 +56,8 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
                   ...module,
                   topics: Array.isArray(module.topics) ? module.topics : []
                 }))
-              : []
+              : [],
+            moduleProgress: entry.moduleProgress || {}
           }));
           
           setHistory(validEntries);
@@ -89,6 +93,11 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
     const historyId = await saveSearchHistory(user.uid, query, validModules);
     
     // Update local state with the new entry
+    const moduleProgress: Record<number, number> = {};
+    validModules.forEach((_, index) => {
+      moduleProgress[index] = 0;
+    });
+    
     const newEntry: HistoryEntry = {
       id: historyId,
       query,
@@ -97,7 +106,8 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
       modules: validModules,
       progress: 0,
       totalTopics: validModules.reduce((total, module) => total + module.topics.length, 0),
-      completedTopics: 0
+      completedTopics: 0,
+      moduleProgress
     };
     
     setHistory(prevHistory => [newEntry, ...prevHistory]);
@@ -105,14 +115,14 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
     return historyId;
   };
 
-  const updateProgress = async (historyId: string, completedTopics: number): Promise<void> => {
+  const updateProgress = async (historyId: string, completedTopics: number, moduleProgress: Record<number, number>): Promise<void> => {
     if (!isAuthenticated || !user) {
       console.error('User must be authenticated to update progress');
       throw new Error('User must be authenticated to update progress');
     }
 
-    console.log(`Updating progress for history entry ${historyId}: ${completedTopics} topics`);
-    await updateHistoryProgress(user.uid, historyId, completedTopics);
+    console.log(`Updating progress for history entry ${historyId}: ${completedTopics} topics, module progress:`, moduleProgress);
+    await updateHistoryProgress(user.uid, historyId, completedTopics, moduleProgress);
     
     // Update local state
     setHistory(prevHistory => 
@@ -123,12 +133,47 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
             ...entry,
             completedTopics,
             progress,
-            lastAccessedAt: Date.now()
+            lastAccessedAt: Date.now(),
+            moduleProgress
           };
         }
         return entry;
       })
     );
+  };
+  
+  const saveTopicDetail = async (historyId: string, moduleIndex: number, topicIndex: number, topic: Topic): Promise<void> => {
+    if (!isAuthenticated || !user) {
+      console.log('User not authenticated, not saving topic details');
+      return;
+    }
+    
+    try {
+      console.log(`Saving topic details for history ${historyId}, module ${moduleIndex}, topic ${topicIndex}`);
+      await saveTopicDetails(user.uid, historyId, moduleIndex, topicIndex, topic);
+      
+      // Update local state
+      setHistory(prevHistory => 
+        prevHistory.map(entry => {
+          if (entry.id === historyId && Array.isArray(entry.modules) && entry.modules[moduleIndex]) {
+            const updatedModules = [...entry.modules];
+            if (!Array.isArray(updatedModules[moduleIndex].topics)) {
+              updatedModules[moduleIndex].topics = [];
+            }
+            updatedModules[moduleIndex].topics[topicIndex] = topic;
+            
+            return {
+              ...entry,
+              modules: updatedModules,
+              lastAccessedAt: Date.now()
+            };
+          }
+          return entry;
+        })
+      );
+    } catch (error) {
+      console.error('Error saving topic details:', error);
+    }
   };
 
   const deleteEntry = async (historyId: string): Promise<void> => {
@@ -149,6 +194,7 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
     loading,
     addToHistory,
     updateProgress,
+    saveTopicDetail,
     deleteEntry
   };
 

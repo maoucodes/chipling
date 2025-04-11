@@ -1,11 +1,11 @@
-
 import { FC, useState, useEffect } from 'react';
-import { BookmarkIcon, HistoryIcon, LayersIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon } from 'lucide-react';
+import { BookmarkIcon, HistoryIcon, LayersIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon, SettingsIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import { Module, Topic } from '@/types/knowledge';
 import UserProfile from '@/components/UserProfile';
+import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
   currentModule?: Module | null;
@@ -16,6 +16,7 @@ interface SidebarProps {
   onNextModule?: () => void;
   onHistoryClick?: () => void;
   onNewSearch?: () => void;
+  onSettingsClick?: () => void;
   completedTopics?: Record<string, boolean>;
 }
 
@@ -28,10 +29,12 @@ const Sidebar: FC<SidebarProps> = ({
   onNextModule,
   onHistoryClick,
   onNewSearch,
+  onSettingsClick,
   completedTopics = {}
 }) => {
   const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
+  const navigate = useNavigate();
   
   const calculateProgress = (moduleIndex: number) => {
     if (!modules || !modules[moduleIndex]) return 0;
@@ -88,37 +91,44 @@ const Sidebar: FC<SidebarProps> = ({
       }));
     }
   }, [currentTopicIndices, currentModuleIndex]);
+
+  const handleLogoClick = () => {
+    navigate('/app');
+  };
   
   return (
     <div className="h-full bg-[#070A0E] flex flex-col">
-      <div className="flex items-center min-h-[50px] px-3 gap-2 border-b border-border/50">
-        <div className="bg-white/10 rounded-md p-1 flex items-center justify-center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div 
+        className="flex items-center min-h-[60px] px-4 gap-3 border-b border-border/50 cursor-pointer"
+        onClick={handleLogoClick}
+      >
+        <div className="bg-white/10 rounded-md p-1.5 flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <span className="font-semibold text-base whitespace-nowrap">chipling</span>
+        <span className="font-semibold text-lg whitespace-nowrap">chipling</span>
       </div>
 
-      <div className="p-2 border-b border-border/50">
+      <div className="p-3 border-b border-border/50">
         <button 
           onClick={onNewSearch}
           className={cn(
-            "flex items-center gap-2 w-full p-1.5",
-            "hover:bg-accent/10 rounded-md transition-all text-sm"
+            "flex items-center gap-2 w-full p-2",
+            "hover:bg-accent/10 rounded-md transition-all text-base"
           )}
         >
-          <PlusIcon className="w-4 h-4" />
+          <PlusIcon className="w-5 h-5" />
           <span>New Search</span>
         </button>
       </div>
 
       <div className="flex-1 overflow-auto">
-        <div className="p-2 pt-4">
+        <div className="p-3 pt-4">
           <div className="flex flex-col gap-2">
-            <div className="text-muted-foreground text-xs mb-2">CURRENT LEARNING PATH</div>
+            <div className="text-muted-foreground text-sm mb-2">CURRENT LEARNING PATH</div>
             
             {modules && modules.length > 0 ? (
               <div className="space-y-2">
@@ -138,25 +148,25 @@ const Sidebar: FC<SidebarProps> = ({
                         )}>
                           <div className="flex items-center gap-2">
                             <CollapsibleTrigger asChild>
-                              <button className="size-5 flex items-center justify-center rounded hover:bg-accent/20">
+                              <button className="size-6 flex items-center justify-center rounded hover:bg-accent/20">
                                 {isExpanded ? (
-                                  <ChevronDownIcon className="size-4" />
+                                  <ChevronDownIcon className="size-5" />
                                 ) : (
-                                  <ChevronRightIcon className="size-4" />
+                                  <ChevronRightIcon className="size-5" />
                                 )}
                               </button>
                             </CollapsibleTrigger>
-                            <div className="text-sm font-medium">Module {moduleIndex + 1}: {module.title}</div>
+                            <div className="text-base font-medium">Module {moduleIndex + 1}: {module.title}</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-sm text-muted-foreground">
                             {Math.round(calculateProgress(moduleIndex))}%
                           </div>
                         </div>
                         
-                        <Progress value={calculateProgress(moduleIndex)} className="h-1.5 mb-2" />
+                        <Progress value={calculateProgress(moduleIndex)} className="h-2 mb-3" />
                         
                         <CollapsibleContent>
-                          <div className="pl-2 space-y-1">
+                          <div className="pl-3 space-y-1.5">
                             {module.topics.map((topic, topicIndex) => {
                               const isCompleted = isTopicCompleted(moduleIndex, topicIndex);
                               const isExpanded = expandedTopics[`${moduleIndex}-${topicIndex}`];
@@ -170,27 +180,27 @@ const Sidebar: FC<SidebarProps> = ({
                                   onOpenChange={() => toggleTopic(moduleIndex, topicIndex)}
                                 >
                                   <div className={cn(
-                                    "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
+                                    "flex items-center gap-2 p-2 rounded-md cursor-pointer text-base",
                                     isActive ? "bg-primary/20" : "hover:bg-accent/10",
                                     isCompleted ? "text-green-400" : ""
                                   )}
                                   onClick={() => onSelectTopic && onSelectTopic(moduleIndex, topicIndex)}
                                   >
                                     <CollapsibleTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <button className="size-5 flex items-center justify-center rounded hover:bg-accent/20">
+                                      <button className="size-6 flex items-center justify-center rounded hover:bg-accent/20">
                                         {isExpanded ? (
-                                          <ChevronDownIcon className="size-4" />
+                                          <ChevronDownIcon className="size-5" />
                                         ) : (
-                                          <ChevronRightIcon className="size-4" />
+                                          <ChevronRightIcon className="size-5" />
                                         )}
                                       </button>
                                     </CollapsibleTrigger>
                                     
-                                    <div className="w-5 h-5 flex items-center justify-center">
+                                    <div className="w-6 h-6 flex items-center justify-center">
                                       {isCompleted ? (
-                                        <div className="w-2 h-2 bg-green-400 rounded-full" />
+                                        <div className="w-2.5 h-2.5 bg-green-400 rounded-full"></div>
                                       ) : (
-                                        <div className="w-2 h-2 bg-muted rounded-full" />
+                                        <div className="w-2.5 h-2.5 bg-muted rounded-full"></div>
                                       )}
                                     </div>
                                     
@@ -199,48 +209,48 @@ const Sidebar: FC<SidebarProps> = ({
                                   
                                   <CollapsibleContent>
                                     {topic.subtopics && topic.subtopics.length > 0 ? (
-                                      <div className="pl-6 pt-1 pb-1 space-y-1">
+                                      <div className="pl-8 pt-1 pb-1 space-y-1.5">
                                         {topic.subtopics.map((subtopic, subtopicIndex) => (
                                           <div 
                                             key={subtopicIndex}
-                                            className="flex items-center gap-2 p-1.5 text-xs rounded-md hover:bg-accent/10 cursor-pointer"
+                                            className="flex items-center gap-2 p-1.5 text-sm rounded-md hover:bg-accent/10 cursor-pointer"
                                           >
-                                            <div className="w-4 h-4 flex items-center justify-center">
-                                              <div className="w-1.5 h-1.5 bg-muted rounded-full" />
+                                            <div className="w-5 h-5 flex items-center justify-center">
+                                              <div className="w-2 h-2 bg-muted rounded-full"></div>
                                             </div>
                                             <span className="truncate">{subtopic.title}</span>
                                           </div>
                                         ))}
                                       </div>
                                     ) : (
-                                      <div className="pl-6 pt-1 pb-1 text-xs text-muted-foreground">
+                                      <div className="pl-8 pt-1 pb-1 text-sm text-muted-foreground">
                                         No subtopics available
                                       </div>
                                     )}
                                     
                                     {topicIndex < module.topics.length - 1 && (
                                       <div 
-                                        className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
+                                        className="flex items-center gap-2 pl-8 p-1.5 text-sm text-primary hover:underline cursor-pointer"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           onSelectTopic && onSelectTopic(moduleIndex, topicIndex + 1);
                                         }}
                                       >
                                         <span>Next topic</span>
-                                        <ChevronRightIcon className="size-3" />
+                                        <ChevronRightIcon className="size-4" />
                                       </div>
                                     )}
                                     
                                     {topicIndex === module.topics.length - 1 && moduleIndex < modules.length - 1 && (
                                       <div 
-                                        className="flex items-center gap-2 pl-6 p-1.5 text-xs text-primary hover:underline cursor-pointer"
+                                        className="flex items-center gap-2 pl-8 p-1.5 text-sm text-primary hover:underline cursor-pointer"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (onNextModule) onNextModule();
                                         }}
                                       >
                                         <span>Next module</span>
-                                        <ChevronRightIcon className="size-3" />
+                                        <ChevronRightIcon className="size-4" />
                                       </div>
                                     )}
                                   </CollapsibleContent>
@@ -256,24 +266,29 @@ const Sidebar: FC<SidebarProps> = ({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                <LayersIcon className="size-8 mb-2 opacity-30" />
-                <div className="text-xs">No current layers</div>
+                <LayersIcon className="size-10 mb-2 opacity-30" />
+                <div className="text-sm">No current layers</div>
               </div>
             )}
           </div>
         </div>
 
-        <nav className="mt-4 px-2">
-          <SidebarItem icon={<BookmarkIcon className="w-4 h-4" />} label="Notes" />
+        <nav className="mt-6 px-3">
+          <SidebarItem icon={<BookmarkIcon className="w-5 h-5" />} label="Notes" />
           <SidebarItem 
-            icon={<HistoryIcon className="w-4 h-4" />} 
+            icon={<HistoryIcon className="w-5 h-5" />}
             label="History" 
             onClick={onHistoryClick}
+          />
+          <SidebarItem 
+            icon={<SettingsIcon className="w-5 h-5" />}
+            label="Settings" 
+            onClick={onSettingsClick}
           />
         </nav>
       </div>
 
-      <div className="p-2 border-t border-border/50">
+      <div className="p-3 border-t border-border/50">
         <UserProfile />
       </div>
     </div>
@@ -290,8 +305,8 @@ const SidebarItem: FC<SidebarItemProps> = ({ icon, label, onClick }) => {
   return (
     <div 
       className={cn(
-        "flex items-center gap-2 p-1.5 my-0.5",
-        "hover:bg-accent/10 rounded-md transition-all cursor-pointer text-sm"
+        "flex items-center gap-3 p-2 my-1",
+        "hover:bg-accent/10 rounded-md transition-all cursor-pointer text-base"
       )}
       onClick={onClick}
     >

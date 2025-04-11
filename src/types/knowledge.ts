@@ -1,4 +1,3 @@
-
 export interface Topic {
   title: string;
   relevance: number;
@@ -17,4 +16,10 @@ export interface Subtopic {
 export interface Module {
   title: string;
   topics: Topic[];
+}
+
+export interface UserSubscriptionType {
+  type: 'free' | 'silver' | 'gold';
+  usedRequests?: number;
+  requestLimit?: number;
 }

@@ -1,3 +1,4 @@
+
 import { useState, FC, useEffect } from 'react';
 import { toast } from 'sonner';
 import ChiplingLayout from '@/components/ChiplingLayout';
@@ -29,18 +30,47 @@ const Index = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
   const [completedTopics, setCompletedTopics] = useState<Record<string, boolean>>({});
+  const [moduleProgress, setModuleProgress] = useState<Record<number, number>>({});
+  
+  // Calculate module progress
+  const calculateModuleProgress = (moduleIndex: number) => {
+    if (!modules[moduleIndex]) return 0;
+    
+    const moduleTotalTopics = modules[moduleIndex].topics.length;
+    if (moduleTotalTopics === 0) return 0;
+    
+    const moduleCompletedTopics = Object.keys(completedTopics)
+      .filter(key => key.startsWith(`${moduleIndex}-`) && completedTopics[key])
+      .length;
+      
+    return Math.round((moduleCompletedTopics / moduleTotalTopics) * 100);
+  };
   
   const countCompletedTopics = () => {
     return Object.values(completedTopics).filter(Boolean).length;
   };
   
   useEffect(() => {
+    const computeModuleProgress = () => {
+      const progress: Record<number, number> = {};
+      
+      modules.forEach((module, index) => {
+        progress[index] = calculateModuleProgress(index);
+      });
+      
+      return progress;
+    };
+    
     const updateHistoryEntry = async () => {
       if (currentHistoryId && isAuthenticated) {
         const completed = countCompletedTopics();
+        const moduleProgressData = computeModuleProgress();
+        
+        setModuleProgress(moduleProgressData);
+        
         try {
-          await updateProgress(currentHistoryId, completed);
-          console.log(`Updated progress for history ID ${currentHistoryId}: ${completed} topics completed`);
+          await updateProgress(currentHistoryId, completed, moduleProgressData);
+          console.log(`Updated progress for history ID ${currentHistoryId}: ${completed} topics completed, module progress:`, moduleProgressData);
         } catch (error) {
           console.error("Error updating history progress:", error);
         }
@@ -48,7 +78,7 @@ const Index = () => {
     };
     
     updateHistoryEntry();
-  }, [completedTopics, currentHistoryId, isAuthenticated, updateProgress]);
+  }, [completedTopics, currentHistoryId, isAuthenticated, modules, updateProgress]);
   
   const markTopicCompleted = (moduleIndex: number, topicIndex: number) => {
     const key = `${moduleIndex}-${topicIndex}`;
@@ -63,6 +93,7 @@ const Index = () => {
     setSearchPerformed(true);
     setCurrentModuleIndex(0);
     setCompletedTopics({});
+    setModuleProgress({});
     
     try {
       const generatedModules = await generateModules(query);
@@ -144,6 +175,10 @@ const Index = () => {
       });
       
       setCompletedTopics(newCompletedTopics);
+      
+      if (historyEntry.moduleProgress) {
+        setModuleProgress(historyEntry.moduleProgress);
+      }
     }
     
     toast.success(`Continuing your journey: "${query}"`);
@@ -186,6 +221,7 @@ const Index = () => {
     setStreamingContent('');
     setCurrentModuleIndex(0);
     setCompletedTopics({});
+    setModuleProgress({});
     setCurrentHistoryId(null);
   };
 
@@ -251,6 +287,9 @@ const Index = () => {
           topic={selectedTopic.topic} 
           onBack={handleBackToTopics} 
           streamingContent={streamingContent}
+          historyId={currentHistoryId}
+          moduleIndex={selectedTopic.moduleIndex}
+          topicIndex={selectedTopic.topicIndex}
         />
       );
     }

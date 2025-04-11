@@ -44,6 +44,7 @@ export interface HistoryEntry {
   progress: number;
   totalTopics: number;
   completedTopics: number;
+  moduleProgress?: Record<number, number>;
 }
 
 // Authentication functions
@@ -160,7 +161,8 @@ export const saveSearchHistory = async (uid: string, query: string, modules: Mod
       modules,
       progress: 0,
       totalTopics,
-      completedTopics: 0
+      completedTopics: 0,
+      moduleProgress: {}
     };
     
     await set(newHistoryRef, historyEntry);
@@ -172,7 +174,12 @@ export const saveSearchHistory = async (uid: string, query: string, modules: Mod
   }
 };
 
-export const updateHistoryProgress = async (uid: string, historyId: string, completedTopics: number): Promise<void> => {
+export const updateHistoryProgress = async (
+  uid: string, 
+  historyId: string, 
+  completedTopics: number, 
+  moduleProgress: Record<number, number> = {}
+): Promise<void> => {
   try {
     console.log(`Updating history progress for user ${uid}, history ${historyId}: ${completedTopics} topics`);
     const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
@@ -185,14 +192,32 @@ export const updateHistoryProgress = async (uid: string, historyId: string, comp
       await update(historyEntryRef, { 
         completedTopics, 
         progress,
-        lastAccessedAt: Date.now()
+        lastAccessedAt: Date.now(),
+        moduleProgress
       });
-      console.log(`Updated progress to ${progress}%`);
+      console.log(`Updated progress to ${progress}% with module progress:`, moduleProgress);
     } else {
       console.error(`History entry ${historyId} not found for user ${uid}`);
     }
   } catch (error) {
     console.error("Error updating history progress", error);
+    throw error;
+  }
+};
+
+export const saveTopicDetails = async (uid: string, historyId: string, moduleIndex: number, topicIndex: number, topic: Topic): Promise<void> => {
+  try {
+    if (!uid || !historyId) {
+      console.log("Not saving topic details - missing user ID or history ID");
+      return;
+    }
+    
+    console.log(`Saving topic details for user ${uid}, history ${historyId}, module ${moduleIndex}, topic ${topicIndex}`);
+    const topicRef = ref(database, `history/${uid}/${historyId}/modules/${moduleIndex}/topics/${topicIndex}`);
+    await update(topicRef, topic);
+    console.log("Topic details saved successfully");
+  } catch (error) {
+    console.error("Error saving topic details", error);
     throw error;
   }
 };
