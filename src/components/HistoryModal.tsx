@@ -92,7 +92,7 @@ const HistoryModal: FC<HistoryModalProps> = ({ isOpen, onClose, onSelectHistory 
                   <div className="p-5">
                     <h3 className="text-lg font-medium mb-1">{entry.query}</h3>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Created on: {formatDate(new Date(entry.createdAt), 'MMM d, yyyy')}
+                      Created on: {entry.createdAt ? formatDate(new Date(entry.createdAt), 'MMM d, yyyy') : 'Unknown date'}
                     </p>
                     <div className="flex justify-between items-center text-sm text-muted-foreground mb-2">
                       <span>Module Progress</span>
