@@ -34,9 +34,9 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop sidebar */}
-      <div className="hidden md:block">
+      <div className="hidden md:block md:w-[240px] h-screen flex-shrink-0 border-r border-border/50">
         <Sidebar 
           currentModule={currentModule} 
           modules={modules}
@@ -52,7 +52,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
       
       {/* Mobile sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-72">
+        <SheetContent side="left" className="p-0 w-[85vw] sm:w-72 max-w-sm">
           <Sidebar 
             currentModule={currentModule} 
             modules={modules}
@@ -79,7 +79,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onOpenSidebar={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-auto flex items-center justify-center">
+        <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>

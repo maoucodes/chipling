@@ -40,8 +40,8 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
   const displayContent = streamingContent || topic.content;
 
   return (
-    <div className={`container mx-auto px-4 lg:px-8 max-w-7xl mt-auto transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-4 -mx-4 px-4 lg:-mx-8 lg:px-8 border-b border-border/50">
+    <div className={`container mx-auto px-3 sm:px-4 lg:px-8 max-w-7xl mt-auto transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-3 sm:py-4 -mx-3 px-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8 border-b border-border/50">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -49,13 +49,14 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
           onClick={onBack}
         >
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back to all topics
+          <span className="hidden sm:inline">Back to all topics</span>
+          <span className="sm:hidden">Back</span>
         </Button>
       </div>
 
-      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4 lg:p-6 mt-4 mb-6 transition-all duration-300 hover:shadow-lg overflow-hidden">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-semibold">{topic.title}</h1>
+      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3 sm:p-4 lg:p-6 mt-3 sm:mt-4 mb-6 transition-all duration-300 hover:shadow-lg overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-semibold">{topic.title}</h1>
           <div className="flex gap-2 self-end sm:self-auto">
             <button className="p-2 rounded-full hover:bg-accent/20 transition-colors duration-300 hover:scale-110">
               <BookmarkIcon className="w-5 h-5" />
@@ -77,20 +78,10 @@ const TopicDetail: FC<TopicDetailProps> = ({ topic, onBack, streamingContent }) 
             {topic.description}
           </p>
           
-          {isLoading ? (
-            <div className="space-y-4 my-8 animate-pulse">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-4/5" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-          ) : (
-            <div className="text-foreground mb-8 animate-fade-in whitespace-pre-wrap" style={{ animationDelay: '400ms' }}>
-              {displayContent}
-              {streamingContent && <span className="ml-1 animate-pulse">▋</span>}
-            </div>
-          )}
+          <div className="text-foreground mb-8 animate-fade-in whitespace-pre-wrap" style={{ animationDelay: '400ms' }}>
+            {displayContent}
+            {streamingContent && <span className="ml-1 animate-pulse">▋</span>}
+          </div>
 
           {!isLoading && topic.subtopics && topic.subtopics.length > 0 && (
             <div className="mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
@@ -139,15 +130,15 @@ const SubtopicPanel: FC<SubtopicPanelProps> = ({ subtopic, isExpanded, onClick, 
       style={{ animationDelay: `${animationDelay}ms` }}
     >
       <button 
-        className="w-full text-left p-4 flex justify-between items-center"
+        className="w-full text-left p-3 sm:p-4 flex justify-between items-center"
         onClick={onClick}
       >
-        <h3 className="font-medium">{subtopic.title}</h3>
+        <h3 className="font-medium text-sm sm:text-base">{subtopic.title}</h3>
         <ChevronIcon className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
       </button>
       
       {isExpanded && (
-        <div className="p-4 pt-0 border-t border-border/50 animate-accordion-down">
+        <div className="p-3 sm:p-4 pt-0 border-t border-border/50 animate-accordion-down">
           <p className="text-sm text-muted-foreground mb-4">{subtopic.description}</p>
           <div className="text-sm">{subtopic.content}</div>
         </div>

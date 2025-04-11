@@ -1,3 +1,4 @@
+
 import { FC } from 'react';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const LoadingTopicDetail: FC = () => {
   return (
-    <div className="container mx-auto px-4 lg:px-8 max-w-7xl mt-auto opacity-0 animate-fade-in" style={{ animationDelay: '100ms' }}>
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-4 -mx-4 px-4 lg:-mx-8 lg:px-8 border-b border-border/50">
+    <div className="container mx-auto px-3 sm:px-4 lg:px-8 max-w-7xl mt-auto opacity-0 animate-fade-in" style={{ animationDelay: '100ms' }}>
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-3 sm:py-4 -mx-3 px-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8 border-b border-border/50">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -14,13 +15,14 @@ const LoadingTopicDetail: FC = () => {
           disabled
         >
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back to all topics
+          <span className="hidden sm:inline">Back to all topics</span>
+          <span className="sm:hidden">Back</span>
         </Button>
       </div>
 
-      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4 lg:p-6 mt-4 mb-6 transition-all duration-300 overflow-hidden">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="h-8 bg-accent/20 rounded w-2/3 animate-pulse"></div>
+      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3 sm:p-4 lg:p-6 mt-3 sm:mt-4 mb-6 transition-all duration-300 overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+          <div className="h-7 sm:h-8 bg-accent/20 rounded w-2/3 animate-pulse"></div>
           <div className="flex gap-2 self-end sm:self-auto">
             <div className="w-9 h-9 bg-accent/20 rounded-full animate-pulse"></div>
             <div className="w-9 h-9 bg-accent/20 rounded-full animate-pulse"></div>
@@ -51,7 +53,7 @@ const LoadingTopicDetail: FC = () => {
               {[1, 2, 3].map((_, index) => (
                 <div 
                   key={index}
-                  className="border border-border/50 rounded-md overflow-hidden bg-card/20 p-4 animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}
+                  className="border border-border/50 rounded-md overflow-hidden bg-card/20 p-3 sm:p-4 animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}
                 >
                   <div className="h-6 bg-accent/20 rounded w-2/3"></div>
                 </div>

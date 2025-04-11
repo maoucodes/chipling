@@ -4,7 +4,7 @@ import TopicCard from './TopicCard';
 import LoadingTopicCard from './LoadingTopicCard';
 import { Module, Topic } from '@/types/knowledge';
 import { ChevronRight } from 'lucide-react';
-import exp from 'node:constants';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ModuleGridProps {
   modules: Module[];
@@ -19,6 +19,7 @@ const ModuleGrid: FC<ModuleGridProps> = ({
   currentModuleIndex, 
   onNextModule 
 }) => {
+  const isMobile = useIsMobile();
   // Only show the current module's topics
   const currentModule = modules[currentModuleIndex];
   
@@ -30,10 +31,10 @@ const ModuleGrid: FC<ModuleGridProps> = ({
     );
   }
   return (
-    <div className="container mx-auto px-4 animate-fade-in max-w-7xl flex flex-col h-full overflow-hidden">
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm py-6 z-50 border-b border-border/50 flex-shrink-0">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-2xl font-semibold">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 animate-fade-in max-w-7xl flex flex-col h-full overflow-hidden">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm py-4 z-50 border-b border-border/50 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+          <h2 className="text-xl sm:text-2xl font-semibold truncate max-w-full">
             Module {currentModuleIndex + 1}: {currentModule.title}
           </h2>
 
@@ -48,8 +49,8 @@ const ModuleGrid: FC<ModuleGridProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="flex-1 overflow-y-auto py-4 md:py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {currentModule.topics.map((topic, topicIndex) => (
             <TopicCard
               key={`${currentModuleIndex}-${topicIndex}`}
@@ -60,18 +61,19 @@ const ModuleGrid: FC<ModuleGridProps> = ({
             />
           ))}
           {currentModule.topics.length === 0 && (
-            Array.from({ length: 4 }).map((_, index) => (
+            Array.from({ length: isMobile ? 2 : 4 }).map((_, index) => (
               <LoadingTopicCard key={`loading-${index}`} />
             ))
           )}
           {currentModule.topics.length > 0 && currentModule.topics.length < 6 && (
-            Array.from({ length: 4 - currentModule.topics.length }).map((_, index) => (
+            Array.from({ length: Math.min(4 - currentModule.topics.length, isMobile ? 1 : 3) }).map((_, index) => (
               <LoadingTopicCard key={`loading-${index}`} />
             ))
           )}
         </div>
-    </div> 
-  </div>
+      </div> 
+    </div>
   );
 };
+
 export default ModuleGrid;
