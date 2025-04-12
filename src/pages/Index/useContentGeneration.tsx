@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Module, Topic } from '@/types/knowledge';
@@ -15,6 +16,7 @@ export const useContentGeneration = () => {
   const [streamingContent, setStreamingContent] = useState<string>('');
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
   const [isLoadingRelatedContent, setIsLoadingRelatedContent] = useState(false);
+  const [mainContentLoading, setMainContentLoading] = useState(false);
 
   const handleSearch = async (query: string) => {
     setIsLoading(true);
@@ -63,16 +65,24 @@ export const useContentGeneration = () => {
   const handleSelectTopic = async (moduleIndex: number, topicIndex: number) => {
     const topic = modules[moduleIndex].topics[topicIndex];
     
+    // Set the topic immediately to navigate to it
     setSelectedTopic({ moduleIndex, topicIndex, topic });
     setStreamingContent('');
     
+    // Check if the content is already loaded to avoid fetching it again
     if (!topic.content) {
+      // Set loading state for main content
+      setMainContentLoading(true);
+      
       try {
+        // Set loading state for related content
         setIsLoadingRelatedContent(true);
         
+        // Generate main content first with streaming updates
         generateTopicMainContent(topic, (partialContent) => {
           setStreamingContent(partialContent);
         }).then(mainContent => {
+          // Update modules with main content
           const updatedModules = [...modules];
           updatedModules[moduleIndex].topics[topicIndex] = {
             ...topic,
@@ -80,6 +90,7 @@ export const useContentGeneration = () => {
           };
           setModules(updatedModules);
           
+          // Update selected topic with main content
           setSelectedTopic({
             moduleIndex,
             topicIndex,
@@ -88,47 +99,60 @@ export const useContentGeneration = () => {
               content: mainContent.content
             }
           });
-          setStreamingContent('');
           
-          generateTopicRelatedContent(topic).then(relatedContent => {
-            const fullyUpdatedModules = [...updatedModules];
-            const currentTopic = fullyUpdatedModules[moduleIndex].topics[topicIndex];
-            
-            fullyUpdatedModules[moduleIndex].topics[topicIndex] = {
-              ...currentTopic,
-              subtopics: relatedContent.subtopics,
-              references: relatedContent.references
-            };
-            
-            setModules(fullyUpdatedModules);
-            setSelectedTopic({
-              moduleIndex,
-              topicIndex,
-              topic: {
+          // Clear streaming content and mark main content as loaded
+          setStreamingContent('');
+          setMainContentLoading(false);
+          
+          // Only fetch related content if it's not already loaded
+          if (!topic.subtopics || topic.subtopics.length === 0) {
+            // Generate related content after main content is loaded
+            generateTopicRelatedContent(topic).then(relatedContent => {
+              const fullyUpdatedModules = [...updatedModules];
+              const currentTopic = fullyUpdatedModules[moduleIndex].topics[topicIndex];
+              
+              fullyUpdatedModules[moduleIndex].topics[topicIndex] = {
                 ...currentTopic,
                 subtopics: relatedContent.subtopics,
                 references: relatedContent.references
-              }
+              };
+              
+              setModules(fullyUpdatedModules);
+              setSelectedTopic({
+                moduleIndex,
+                topicIndex,
+                topic: {
+                  ...currentTopic,
+                  subtopics: relatedContent.subtopics,
+                  references: relatedContent.references
+                }
+              });
+              setIsLoadingRelatedContent(false);
+            }).catch(error => {
+              console.error("Error generating related content:", error);
+              toast.error("Failed to load related content. Please try again.");
+              setIsLoadingRelatedContent(false);
             });
+          } else {
+            // If subtopics are already loaded, just update the loading state
             setIsLoadingRelatedContent(false);
-          }).catch(error => {
-            console.error("Error generating related content:", error);
-            toast.error("Failed to load related content. Please try again.");
-            setIsLoadingRelatedContent(false);
-          });
+          }
         }).catch(error => {
           console.error("Error generating main content:", error);
           toast.error("Failed to load content. Please try again.");
           setStreamingContent('');
+          setMainContentLoading(false);
           setIsLoadingRelatedContent(false);
         });
       } catch (error) {
         console.error("Error generating topic details:", error);
         toast.error("Failed to load detailed content. Please try again.");
         setStreamingContent('');
+        setMainContentLoading(false);
         setIsLoadingRelatedContent(false);
       }
     } else {
+      // Content is already loaded, just check if we need related content
       if (!topic.subtopics || topic.subtopics.length === 0) {
         setIsLoadingRelatedContent(true);
         
@@ -159,6 +183,9 @@ export const useContentGeneration = () => {
           toast.error("Failed to load related content. Please try again.");
           setIsLoadingRelatedContent(false);
         }
+      } else {
+        // Both main content and related content are already loaded
+        setIsLoadingRelatedContent(false);
       }
     }
   };
@@ -230,6 +257,7 @@ export const useContentGeneration = () => {
     streamingContent,
     currentHistoryId,
     isLoadingRelatedContent,
+    mainContentLoading,
     setCurrentHistoryId,
     handleSearch,
     handleSelectTopic,

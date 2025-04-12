@@ -14,6 +14,7 @@ interface TopicDetailProps {
   moduleIndex?: number;
   topicIndex?: number;
   isLoadingRelatedContent?: boolean;
+  mainContentLoading?: boolean;
 }
 
 const TopicDetail: FC<TopicDetailProps> = ({ 
@@ -23,11 +24,12 @@ const TopicDetail: FC<TopicDetailProps> = ({
   historyId,
   moduleIndex,
   topicIndex,
-  isLoadingRelatedContent = false
+  isLoadingRelatedContent = false,
+  mainContentLoading = false
 }) => {
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
   const [isVisible, setIsVisible] = useState(false);
-  const isLoading = !topic || (!topic.content && !streamingContent);
+  const isLoading = !topic || (mainContentLoading && !streamingContent);
   const { saveTopicDetail } = useHistory();
 
   useEffect(() => {
@@ -54,8 +56,15 @@ const TopicDetail: FC<TopicDetailProps> = ({
     }
   }, [topic.content, isLoading, historyId, moduleIndex, topicIndex, topic, saveTopicDetail]);
 
+  // Show full loading state if we don't have a topic or main content is loading with no streaming content
   if (isLoading) {
     return <LoadingTopicDetail />;
+  }
+
+  // Show partial loading state if we have main content but related content is still loading
+  const loadingState = isLoadingRelatedContent ? 'related-only' : 'none';
+  if (loadingState === 'related-only' && !topic.content && !streamingContent) {
+    return <LoadingTopicDetail loadingState={loadingState} />;
   }
 
   const toggleSubtopic = (index: number) => {

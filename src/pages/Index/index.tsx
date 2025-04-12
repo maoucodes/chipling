@@ -30,6 +30,7 @@ const Index: FC = () => {
     streamingContent,
     currentHistoryId,
     isLoadingRelatedContent,
+    mainContentLoading,
     setCurrentHistoryId,
     handleSearch,
     handleSelectTopic,
@@ -122,6 +123,7 @@ const Index: FC = () => {
           moduleIndex={selectedTopic.moduleIndex}
           topicIndex={selectedTopic.topicIndex}
           isLoadingRelatedContent={isLoadingRelatedContent}
+          mainContentLoading={mainContentLoading}
         />
       );
     }
