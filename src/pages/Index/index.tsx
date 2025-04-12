@@ -1,4 +1,3 @@
-
 import { useState, FC } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHistory } from '@/contexts/HistoryContext';
@@ -23,7 +22,6 @@ const Index: FC = () => {
   const [pendingSearch, setPendingSearch] = useState<string | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   
-  // Content generation custom hook
   const {
     isLoading,
     modules,
@@ -31,6 +29,7 @@ const Index: FC = () => {
     selectedTopic,
     streamingContent,
     currentHistoryId,
+    isLoadingRelatedContent,
     setCurrentHistoryId,
     handleSearch,
     handleSelectTopic,
@@ -39,21 +38,18 @@ const Index: FC = () => {
     handleSelectHistory
   } = useContentGeneration();
   
-  // Progress tracking custom hook
   const {
     completedTopics,
     setCompletedTopics,
     markTopicCompleted
   } = useModuleProgress(modules, currentHistoryId);
 
-  // Extended version of handleSearch that also sets searchPerformed
   const handleSearchWithState = (query: string) => {
     setSearchPerformed(true);
     setCompletedTopics({});
     handleSearch(query);
   };
   
-  // Extended version of handleSelectTopic that also marks topics as completed
   const handleSelectTopicWithProgress = (moduleIndex: number, topicIndex: number) => {
     handleSelectTopic(moduleIndex, topicIndex);
     markTopicCompleted(moduleIndex, topicIndex);
@@ -125,6 +121,7 @@ const Index: FC = () => {
           historyId={currentHistoryId}
           moduleIndex={selectedTopic.moduleIndex}
           topicIndex={selectedTopic.topicIndex}
+          isLoadingRelatedContent={isLoadingRelatedContent}
         />
       );
     }
