@@ -2,6 +2,7 @@
 import { FC } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Landing: FC = () => {
@@ -45,11 +46,15 @@ const Landing: FC = () => {
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20 flex flex-col items-center text-center">
-        <h1 className="text-5xl sm:text-6xl font-bold mb-6">Deep Dive Into Knowledge</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mb-10">
+        <h1 className="text-5xl sm:text-6xl font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">Deep Dive Into Knowledge</h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
           Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
         </p>
-        <Button size="lg" onClick={handleGetStarted} className="px-8 py-6 text-lg">
+        <Button 
+          size="lg" 
+          onClick={handleGetStarted} 
+          className="px-8 py-6 text-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300"
+        >
           Start Exploring
         </Button>
       </div>
@@ -62,23 +67,26 @@ const Landing: FC = () => {
             title="Structured Learning"
             description="Topics are organized into modules and topics for progressive understanding."
             icon={<IconLayers />}
+            delay={0}
           />
           <FeatureCard 
             title="Track Progress"
             description="Keep track of your learning journey with automatic progress tracking."
             icon={<IconChart />}
+            delay={150}
           />
           <FeatureCard 
             title="Smart Recommendations"
             description="Get personalized recommendations for related topics to explore."
             icon={<IconBrain />}
+            delay={300}
           />
         </div>
       </div>
 
       {/* CTA Section */}
       <div className="container mx-auto px-4 py-20">
-        <div className="bg-primary/10 rounded-2xl p-8 md:p-12 flex flex-col items-center text-center">
+        <div className="bg-primary/10 rounded-2xl p-8 md:p-12 flex flex-col items-center text-center animate-in fade-in-50 duration-700">
           <h2 className="text-3xl font-bold mb-6">Ready to expand your knowledge?</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mb-8">
             Join thousands of learners who are discovering new topics and deepening their understanding every day.
@@ -103,9 +111,9 @@ const Landing: FC = () => {
             <span className="text-sm">© 2025 Chipling. All rights reserved.</span>
           </div>
           <div className="flex gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-primary">Contact</a>
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link>
+            <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</Link>
           </div>
         </div>
       </footer>
@@ -117,11 +125,15 @@ interface FeatureCardProps {
   title: string;
   description: string;
   icon: React.ReactNode;
+  delay?: number;
 }
 
-const FeatureCard: FC<FeatureCardProps> = ({ title, description, icon }) => {
+const FeatureCard: FC<FeatureCardProps> = ({ title, description, icon, delay = 0 }) => {
   return (
-    <div className="bg-card border border-border/50 rounded-xl p-6 flex flex-col items-center text-center">
+    <div 
+      className="bg-card border border-border/50 rounded-xl p-6 flex flex-col items-center text-center animate-in fade-in-50 slide-in-from-bottom-4 duration-700" 
+      style={{ animationDelay: `${delay}ms` }}
+    >
       <div className="bg-primary/10 p-3 rounded-full mb-4">
         {icon}
       </div>

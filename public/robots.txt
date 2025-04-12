@@ -1,3 +1,12 @@
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://chipling.com/sitemap.xml
+
+# Specific crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +19,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Disallow admin and settings paths
+Disallow: /settings
