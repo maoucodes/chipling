@@ -1,4 +1,5 @@
-import { Module, Topic, Subtopic } from '@/types/knowledge';
+
+import { Module, Topic } from '@/types/knowledge';
 import { streamChat } from './chatService';
 
 export async function generateModules(searchQuery: string, maxRetries = 5): Promise<Module[]> {
@@ -145,21 +146,32 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
   return attemptGeneration();
 }
 
-export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 5): Promise<{content: string}> {
+export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 5): Promise<Topic> {
   let retryCount = 0;
   
-  const attemptGeneration = async (): Promise<{content: string}> => {
+  const attemptGeneration = async (): Promise<Topic> => {
     try {
       let fullResponse = '';
       let currentStreamingContent = '';
       
       const prompt = `Generate detailed information about the topic: "${topic.title}".
       Please include:
-      - A comprehensive content section (2-3 paragraphs).
+      - A comprehensive content section (2-3 paragraphs)
+      - 2-3 subtopics, each with title, description, and content
+      - 3-5 references or further reading suggestions
       
       Format the response as JSON that matches this TypeScript interface:
       {
+        title: string;
+        relevance: number;
+        description: string;
         content: string;
+        subtopics: Array<{
+          title: string;
+          description: string;
+          content: string;
+        }>;
+        references: string[];
       }
       
       Only respond with the JSON data.`;
@@ -169,8 +181,7 @@ export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (p
         
         if (onStreamUpdate) {
           try {
-            const contentMatch = fullResponse.match(/"content":\s*"([^"]*)"/);            
-            if (contentMatch && contentMatch[1]) {
+            const contentMatch = fullResponse.match(/"content":\s*"([^"]*)"/);            if (contentMatch && contentMatch[1]) {
               const partialContent = contentMatch[1];
               if (partialContent !== currentStreamingContent) {
                 currentStreamingContent = partialContent;
@@ -187,8 +198,11 @@ export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (p
       if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
         const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
         try {
-          const mainContent = JSON.parse(jsonStr);
-          return mainContent;
+          const enrichedTopic = JSON.parse(jsonStr);
+          return {
+            ...topic,
+            ...enrichedTopic
+          };
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
           console.log("Raw JSON:", jsonStr);
@@ -218,89 +232,4 @@ export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (p
   };
 
   return attemptGeneration();
-}
-
-export async function generateTopicRelatedContent(topic: Topic, maxRetries = 5): Promise<{subtopics: Subtopic[], references: string[]}> {
-  let retryCount = 0;
-  
-  const attemptGeneration = async (): Promise<{subtopics: Subtopic[], references: string[]}> => {
-    try {
-      let fullResponse = '';
-      
-      const prompt = `Generate related information for the topic: "${topic.title}".
-      Please include:
-      - 2-3 subtopics, each with title, description, and content
-      - 3-5 references or further reading suggestions
-      
-      Format the response as JSON that matches this TypeScript interface:
-      {
-        subtopics: Array<{
-          title: string;
-          description: string;
-          content: string;
-        }>;
-        references: string[];
-      }
-      
-      Only respond with the JSON data.`;
-      
-      await streamChat(prompt, (token) => {
-        fullResponse += token;
-      });
-      
-      const jsonStartIndex = fullResponse.indexOf('{');
-      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
-      
-      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
-        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
-        try {
-          const relatedContent = JSON.parse(jsonStr);
-          return relatedContent;
-        } catch (parseError) {
-          console.error("Error parsing JSON:", parseError);
-          console.log("Raw JSON:", jsonStr);
-          if (retryCount < maxRetries) {
-            retryCount++;
-            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
-            return attemptGeneration();
-          }
-          throw new Error("Failed to parse generated content after max retries");
-        }
-      } else {
-        if (retryCount < maxRetries) {
-          retryCount++;
-          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
-          return attemptGeneration();
-        }
-        throw new Error("No valid JSON found in the response after max retries");
-      }
-    } catch (error) {
-      if (retryCount < maxRetries) {
-        retryCount++;
-        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
-        return attemptGeneration();
-      }
-      throw error;
-    }
-  };
-
-  return attemptGeneration();
-}
-
-export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 5): Promise<Topic> {
-  try {
-    const mainContent = await generateTopicMainContent(topic, onStreamUpdate);
-    
-    const relatedContent = await generateTopicRelatedContent(topic);
-    
-    return {
-      ...topic,
-      content: mainContent.content,
-      subtopics: relatedContent.subtopics,
-      references: relatedContent.references
-    };
-  } catch (error) {
-    console.error("Error generating topic detail:", error);
-    throw error;
-  }
 }

@@ -1,10 +1,10 @@
+
 import { FC, useState, useEffect } from 'react';
 import { ArrowLeftIcon, BookmarkIcon, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Topic, Subtopic } from '@/types/knowledge';
 import LoadingTopicDetail from './LoadingTopicDetail';
 import { useHistory } from '@/contexts/HistoryContext';
-import { SkeletonText } from '@/components/ui/skeleton';
 
 interface TopicDetailProps {
   topic: Topic;
@@ -13,8 +13,6 @@ interface TopicDetailProps {
   historyId?: string | null;
   moduleIndex?: number;
   topicIndex?: number;
-  isLoadingRelatedContent?: boolean;
-  mainContentLoading?: boolean;
 }
 
 const TopicDetail: FC<TopicDetailProps> = ({ 
@@ -23,13 +21,11 @@ const TopicDetail: FC<TopicDetailProps> = ({
   streamingContent,
   historyId,
   moduleIndex,
-  topicIndex,
-  isLoadingRelatedContent = false,
-  mainContentLoading = false
+  topicIndex 
 }) => {
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
   const [isVisible, setIsVisible] = useState(false);
-  const isLoading = !topic || (mainContentLoading && !streamingContent);
+  const isLoading = !topic || (!topic.content && !streamingContent);
   const { saveTopicDetail } = useHistory();
 
   useEffect(() => {
@@ -56,15 +52,8 @@ const TopicDetail: FC<TopicDetailProps> = ({
     }
   }, [topic.content, isLoading, historyId, moduleIndex, topicIndex, topic, saveTopicDetail]);
 
-  // Show full loading state if we don't have a topic or main content is loading with no streaming content
   if (isLoading) {
     return <LoadingTopicDetail />;
-  }
-
-  // Show partial loading state if we have main content but related content is still loading
-  const loadingState = isLoadingRelatedContent ? 'related-only' : 'none';
-  if (loadingState === 'related-only' && !topic.content && !streamingContent) {
-    return <LoadingTopicDetail loadingState={loadingState} />;
   }
 
   const toggleSubtopic = (index: number) => {
@@ -121,56 +110,32 @@ const TopicDetail: FC<TopicDetailProps> = ({
             {streamingContent && <span className="ml-1 animate-pulse">▋</span>}
           </div>
 
-          {isLoadingRelatedContent ? (
+          {!isLoading && topic.subtopics && topic.subtopics.length > 0 && (
             <div className="mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
               <h2 className="text-xl font-medium mb-4">Explore Deeper</h2>
               <div className="space-y-4">
-                {[1, 2, 3].map((_, index) => (
-                  <div 
+                {topic.subtopics.map((subtopic, index) => (
+                  <SubtopicPanel 
                     key={index}
-                    className="border border-border/50 rounded-md overflow-hidden bg-card/20 p-3 sm:p-4 animate-fade-in" 
-                    style={{ animationDelay: `${600 + index * 100}ms` }}
-                  >
-                    <div className="h-6 bg-accent/20 rounded w-2/3 animate-pulse"></div>
-                  </div>
+                    subtopic={subtopic}
+                    isExpanded={!!expandedSubtopics[index]}
+                    onClick={() => toggleSubtopic(index)}
+                    animationDelay={600 + index * 100}
+                  />
                 ))}
               </div>
-              
-              <div className="mt-8 pt-6 border-t border-border/50 animate-fade-in" style={{ animationDelay: '700ms' }}>
-                <h2 className="text-lg font-medium mb-2">References & Further Reading</h2>
-                <SkeletonText lines={3} animate={true} className="mt-4" />
-              </div>
             </div>
-          ) : (
-            <>
-              {topic.subtopics && topic.subtopics.length > 0 && (
-                <div className="mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
-                  <h2 className="text-xl font-medium mb-4">Explore Deeper</h2>
-                  <div className="space-y-4">
-                    {topic.subtopics.map((subtopic, index) => (
-                      <SubtopicPanel 
-                        key={index}
-                        subtopic={subtopic}
-                        isExpanded={!!expandedSubtopics[index]}
-                        onClick={() => toggleSubtopic(index)}
-                        animationDelay={600 + index * 100}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+          )}
 
-              {topic.references && topic.references.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-border/50 animate-fade-in" style={{ animationDelay: '700ms' }}>
-                  <h2 className="text-lg font-medium mb-2">References & Further Reading</h2>
-                  <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                    {topic.references.map((reference, index) => (
-                      <li key={index} className="animate-fade-in" style={{ animationDelay: `${800 + index * 100}ms` }}>{reference}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
+          {!isLoading && topic.references && topic.references.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-border/50 animate-fade-in" style={{ animationDelay: '700ms' }}>
+              <h2 className="text-lg font-medium mb-2">References & Further Reading</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+                {topic.references.map((reference, index) => (
+                  <li key={index} className="animate-fade-in" style={{ animationDelay: `${800 + index * 100}ms` }}>{reference}</li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </div>

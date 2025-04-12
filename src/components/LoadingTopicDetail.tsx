@@ -2,16 +2,9 @@
 import { FC } from 'react';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Skeleton, SkeletonText } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface LoadingTopicDetailProps {
-  loadingState?: 'full' | 'main-only' | 'related-only';
-}
-
-const LoadingTopicDetail: FC<LoadingTopicDetailProps> = ({ loadingState = 'full' }) => {
-  const showMainContent = loadingState === 'full' || loadingState === 'main-only';
-  const showRelatedContent = loadingState === 'full' || loadingState === 'related-only';
-
+const LoadingTopicDetail: FC = () => {
   return (
     <div className="container mx-auto px-3 sm:px-4 lg:px-8 max-w-7xl mt-auto opacity-0 animate-fade-in" style={{ animationDelay: '100ms' }}>
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-3 sm:py-4 -mx-3 px-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8 border-b border-border/50">
@@ -46,42 +39,36 @@ const LoadingTopicDetail: FC<LoadingTopicDetailProps> = ({ loadingState = 'full'
             <div className="h-5 bg-accent/20 rounded w-4/5 animate-pulse" style={{ animationDelay: '300ms' }}></div>
           </div>
           
-          {showMainContent && (
-            <div className="space-y-4 my-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
-              <div className="h-4 bg-accent/20 rounded w-full animate-pulse"></div>
-              <div className="h-4 bg-accent/20 rounded w-5/6 animate-pulse"></div>
-              <div className="h-4 bg-accent/20 rounded w-full animate-pulse"></div>
-              <div className="h-4 bg-accent/20 rounded w-4/5 animate-pulse"></div>
-              <div className="h-4 bg-accent/20 rounded w-full animate-pulse"></div>
+          <div className="space-y-4 my-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            <div className="h-4 bg-accent/20 rounded w-full animate-pulse"></div>
+            <div className="h-4 bg-accent/20 rounded w-5/6 animate-pulse"></div>
+            <div className="h-4 bg-accent/20 rounded w-full animate-pulse"></div>
+            <div className="h-4 bg-accent/20 rounded w-4/5 animate-pulse"></div>
+            <div className="h-4 bg-accent/20 rounded w-full animate-pulse"></div>
+          </div>
+
+          <div className="mt-8">
+            <div className="h-7 bg-accent/20 rounded w-1/3 mb-4 animate-pulse" style={{ animationDelay: '500ms' }}></div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((_, index) => (
+                <div 
+                  key={index}
+                  className="border border-border/50 rounded-md overflow-hidden bg-card/20 p-3 sm:p-4 animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}
+                >
+                  <div className="h-6 bg-accent/20 rounded w-2/3"></div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
-          {showRelatedContent && (
-            <>
-              <div className="mt-8">
-                <div className="h-7 bg-accent/20 rounded w-1/3 mb-4 animate-pulse" style={{ animationDelay: '500ms' }}></div>
-                <div className="space-y-4">
-                  {[1, 2, 3].map((_, index) => (
-                    <div 
-                      key={index}
-                      className="border border-border/50 rounded-md overflow-hidden bg-card/20 p-3 sm:p-4 animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}
-                    >
-                      <div className="h-6 bg-accent/20 rounded w-2/3"></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-border/50">
-                <div className="h-6 bg-accent/20 rounded w-1/4 mb-4 animate-pulse" style={{ animationDelay: '700ms' }}></div>
-                <div className="space-y-3">
-                  <div className="h-4 bg-accent/20 rounded w-full animate-pulse" style={{ animationDelay: '800ms' }}></div>
-                  <div className="h-4 bg-accent/20 rounded w-5/6 animate-pulse" style={{ animationDelay: '900ms' }}></div>
-                  <div className="h-4 bg-accent/20 rounded w-4/5 animate-pulse" style={{ animationDelay: '1000ms' }}></div>
-                </div>
-              </div>
-            </>
-          )}
+          <div className="mt-8 pt-6 border-t border-border/50">
+            <div className="h-6 bg-accent/20 rounded w-1/4 mb-4 animate-pulse" style={{ animationDelay: '700ms' }}></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-accent/20 rounded w-full animate-pulse" style={{ animationDelay: '800ms' }}></div>
+              <div className="h-4 bg-accent/20 rounded w-5/6 animate-pulse" style={{ animationDelay: '900ms' }}></div>
+              <div className="h-4 bg-accent/20 rounded w-4/5 animate-pulse" style={{ animationDelay: '1000ms' }}></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
