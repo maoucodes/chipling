@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Module, Topic } from '@/types/knowledge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface ChiplingLayoutProps {
   children: ReactNode;
@@ -34,6 +34,10 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Hide header on /app route
+  const showHeader = location.pathname !== '/app';
 
   const handleSettingsClick = () => {
     navigate('/settings');
@@ -87,7 +91,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
       </Sheet>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onOpenSidebar={() => setSidebarOpen(true)} />
+        {showHeader && <Header onOpenSidebar={() => setSidebarOpen(true)} />}
         <main className="flex-1 overflow-auto">
           {children}
         </main>
