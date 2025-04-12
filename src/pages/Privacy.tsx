@@ -112,7 +112,7 @@ const Privacy: FC = () => {
             If you have any questions about this Privacy Policy, please contact us at:
           </p>
           <p className="mt-2">
-            Email: <a href="mailto:privacy@chipling.com" className="text-primary hover:underline">privacy@chipling.com</a>
+            Email: <a href="mailto:privacy@chipling.com" className="text-primary hover:underline">privacy@chipling.xyz</a>
           </p>
         </div>
       </div>

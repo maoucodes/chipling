@@ -122,7 +122,7 @@ const Terms: FC = () => {
             If you have any questions about these Terms, please contact us at:
           </p>
           <p className="mt-2">
-            Email: <a href="mailto:terms@chipling.com" className="text-primary hover:underline">terms@chipling.com</a>
+            Email: <a href="mailto:terms@chipling.xyz" className="text-primary hover:underline">terms@chipling.xyz</a>
           </p>
         </div>
       </div>
