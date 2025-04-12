@@ -143,6 +143,7 @@ const Terms: FC = () => {
           <div className="flex gap-6">
             <a href="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</a>
             <a href="/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</a>
+            <a href="/refund" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</a>
             <a href="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</a>
           </div>
         </div>

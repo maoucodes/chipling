@@ -1,10 +1,9 @@
-
 import { FC } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeftIcon } from 'lucide-react';
 
-const Privacy: FC = () => {
+const RefundPolicy: FC = () => {
   const navigate = useNavigate();
   
   return (
@@ -39,80 +38,70 @@ const Privacy: FC = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8 max-w-4xl animate-in fade-in duration-500">
-        <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+        <h1 className="text-3xl font-bold mb-6">Refund and Cancellation Policy</h1>
         
         <div className="prose prose-invert max-w-none">
           <p className="text-muted-foreground">Last updated: April 12, 2025</p>
           
-          <h2 className="text-xl font-semibold mt-8 mb-4">1. Introduction</h2>
+          <h2 className="text-xl font-semibold mt-8 mb-4">1. No Refund Policy</h2>
           <p>
-            Welcome to Chipling ("we," "our," or "us"). We are committed to protecting your privacy and providing 
-            you with a safe online experience. This Privacy Policy explains how we collect, use, disclose, and 
-            safeguard your information when you use our application and services.
+            At Chipling, we maintain a strict no-refund policy for all purchases made through our platform. 
+            Once a purchase is completed, we do not offer refunds under any circumstances. This policy is 
+            in place to ensure the quality and integrity of our services.
           </p>
           
-          <h2 className="text-xl font-semibold mt-8 mb-4">2. Information We Collect</h2>
+          <h2 className="text-xl font-semibold mt-8 mb-4">2. Subscription Cancellation</h2>
           <p>
-            We may collect information about you in various ways, including:
+            While we do not provide refunds, you may cancel your subscription at any time before your next 
+            billing cycle. Here's what you need to know about cancellation:
           </p>
           <ul className="list-disc pl-6 mt-2 space-y-2">
             <li>
-              <strong>Personal Information:</strong> When you register an account, we collect your email address 
-              and other information you provide during the registration process.
+              Your subscription will remain active until the end of your current billing period
             </li>
             <li>
-              <strong>Usage Data:</strong> We collect information about how you use our application, including 
-              your search queries, learning paths, and interaction with content.
+              You will continue to have access to all features until the end of your paid period
             </li>
             <li>
-              <strong>Device Information:</strong> We collect information about the device you use to access our 
-              application, including your IP address, browser type, and operating system.
+              No partial refunds will be issued for unused time in your current billing period
+            </li>
+            <li>
+              Cancellation will take effect at the end of your current billing cycle
             </li>
           </ul>
           
-          <h2 className="text-xl font-semibold mt-8 mb-4">3. How We Use Your Information</h2>
+          <h2 className="text-xl font-semibold mt-8 mb-4">3. How to Cancel Your Subscription</h2>
           <p>
-            We use the information we collect for various purposes, including:
+            To cancel your subscription:
+          </p>
+          <ol className="list-decimal pl-6 mt-2 space-y-2">
+            <li>Log into your Chipling account</li>
+            <li>Navigate to Account Settings</li>
+            <li>Select 'Subscription'</li>
+            <li>Click on 'Cancel Subscription'</li>
+            <li>Follow the prompts to confirm your cancellation</li>
+          </ol>
+          
+          <h2 className="text-xl font-semibold mt-8 mb-4">4. Exceptions</h2>
+          <p>
+            While we maintain a strict no-refund policy, we may consider exceptions in cases of:
           </p>
           <ul className="list-disc pl-6 mt-2 space-y-2">
-            <li>To provide and maintain our application and services</li>
-            <li>To personalize your experience and deliver content tailored to your interests</li>
-            <li>To improve our application and services</li>
-            <li>To communicate with you, including sending you updates and notifications</li>
-            <li>To prevent and address technical issues</li>
+            <li>Technical issues preventing access to our services</li>
+            <li>Unauthorized charges</li>
+            <li>Service unavailability due to our system maintenance</li>
           </ul>
-          
-          <h2 className="text-xl font-semibold mt-8 mb-4">4. Disclosure of Your Information</h2>
-          <p>
-            We may share your information in the following situations:
-          </p>
-          <ul className="list-disc pl-6 mt-2 space-y-2">
-            <li>With service providers to monitor and analyze the use of our application</li>
-            <li>To comply with legal obligations</li>
-            <li>To protect and defend our rights or property</li>
-            <li>To prevent or investigate possible wrongdoing in connection with the application</li>
-            <li>With your consent or direction</li>
-          </ul>
-          
-          <h2 className="text-xl font-semibold mt-8 mb-4">5. Security of Your Information</h2>
-          <p>
-            We implement appropriate security measures to protect your information from unauthorized access,
-            alteration, disclosure, or destruction. However, no method of transmission over the Internet or method
-            of electronic storage is 100% secure.
+          <p className="mt-4">
+            Such cases will be reviewed on an individual basis and any decisions made will be at the sole 
+            discretion of Chipling.
           </p>
           
-          <h2 className="text-xl font-semibold mt-8 mb-4">6. Changes to This Privacy Policy</h2>
+          <h2 className="text-xl font-semibold mt-8 mb-4">5. Contact Us</h2>
           <p>
-            We may update our Privacy Policy from time to time. We will notify you of any changes by posting
-            the new Privacy Policy on this page and updating the "Last updated" date at the top of this Privacy Policy.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-8 mb-4">7. Contact Us</h2>
-          <p>
-            If you have any questions about this Privacy Policy, please contact us at:
+            If you have any questions about our Refund and Cancellation Policy, please contact us at:
           </p>
           <p className="mt-2">
-            Email: <a href="mailto:privacy@chipling.com" className="text-primary hover:underline">meet.sonawane2015@gmail.com</a>
+            Email: <a href="mailto:support@chipling.xyz" className="text-primary hover:underline">meet.sonawane2015@gmail.com</a>
           </p>
         </div>
       </div>
@@ -133,7 +122,7 @@ const Privacy: FC = () => {
           <div className="flex gap-6">
             <a href="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</a>
             <a href="/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</a>
-            <a href="/refund" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</a>
+            <a href="/refund-policy" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</a>
             <a href="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</a>
           </div>
         </div>
@@ -142,4 +131,4 @@ const Privacy: FC = () => {
   );
 };
 
-export default Privacy;
+export default RefundPolicy;

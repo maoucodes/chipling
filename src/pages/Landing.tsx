@@ -113,6 +113,7 @@ const Landing: FC = () => {
           <div className="flex gap-6">
             <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
             <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link>
+            <a href="/refund" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</a>
             <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</Link>
           </div>
         </div>

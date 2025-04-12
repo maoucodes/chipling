@@ -83,8 +83,19 @@ const Contact: FC = () => {
             
             <div className="space-y-4 mt-8">
               <div className="flex items-start gap-3">
-
-
+                <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-6 w-full">
+                  <h3 className="text-lg font-semibold mb-4">Business Information</h3>
+                  <div className="space-y-2">
+                    <p><strong>Business Owner:</strong> MEET LALITKUMAR SONAWANE</p>
+                    <p><strong>Operational Address:</strong></p>
+                    <p className="text-muted-foreground">
+                      Hiranandani Estate, Patlipada<br />
+                      Thane, Maharashtra 400615<br />
+                      India
+                    </p>
+                    <p className="mt-4"><strong>Email:</strong> meet.sonawane2015@gmail.com</p>
+                  </div>
+                </div>
               </div>
             
             </div>
@@ -180,6 +191,7 @@ const Contact: FC = () => {
           <div className="flex gap-6">
             <a href="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</a>
             <a href="/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</a>
+            <a href="/refund" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</a>
             <a href="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</a>
           </div>
         </div>
