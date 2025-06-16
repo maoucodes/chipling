@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Module, Topic } from '@/types/knowledge';
-import { generateModules, generateTopics, generateTopicDetail } from '@/services/contentService';
+import { generateModules, generateTopics, generateTopicMainContent, generateTopicExtras } from '@/services/contentService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHistory } from '@/contexts/HistoryContext';
 
@@ -68,16 +67,29 @@ export const useContentGeneration = () => {
     
     if (!topic.content) {
       try {
-        generateTopicDetail(topic, (partialContent) => {
+        // Generate main content with streaming
+        const mainContent = await generateTopicMainContent(topic, (partialContent) => {
           setStreamingContent(partialContent);
-        }).then(enrichedTopic => {
-          const updatedModules = [...modules];
-          updatedModules[moduleIndex].topics[topicIndex] = enrichedTopic;
-          setModules(updatedModules);
-          
-          setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
-          setStreamingContent('');
         });
+        
+        // Generate extras (subtopics and references)
+        const { subtopics, references } = await generateTopicExtras(topic);
+        
+        // Create enriched topic with all content
+        const enrichedTopic = {
+          ...topic,
+          content: mainContent,
+          subtopics,
+          references
+        };
+        
+        // Update the modules state
+        const updatedModules = [...modules];
+        updatedModules[moduleIndex].topics[topicIndex] = enrichedTopic;
+        setModules(updatedModules);
+        
+        setSelectedTopic({ moduleIndex, topicIndex, topic: enrichedTopic });
+        setStreamingContent('');
       } catch (error) {
         console.error("Error generating topic details:", error);
         toast.error("Failed to load detailed content. Please try again.");
