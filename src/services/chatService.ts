@@ -1,7 +1,7 @@
 
 export async function streamChat(message: string, onToken: (token: string) => void) {
   try {
-    const response = await fetch("https://maouu-chipling-api.hf.space/chat", {
+    const response = await fetch("https://chipling-api.hf.space/api/v1/generate", {
       method: "POST",
       headers: {
         "accept": "*/*",
@@ -21,7 +21,7 @@ export async function streamChat(message: string, onToken: (token: string) => vo
             content: message
           }
         ],
-        model: "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8"
+        model: "grok-3-fast"
       })
     });
 
