@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Module, Topic } from '@/types/knowledge';
@@ -16,8 +17,13 @@ export const useContentGeneration = () => {
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
 
   const handleSearch = async (query: string) => {
-    setIsLoading(true);
+    // Clear all previous state before starting new search
+    setSelectedTopic(null);
+    setStreamingContent('');
+    setModules([]);
     setCurrentModuleIndex(0);
+    setCurrentHistoryId(null);
+    setIsLoading(true);
     
     try {
       const generatedModules = await generateModules(query);
@@ -143,14 +149,17 @@ export const useContentGeneration = () => {
       return;
     }
     
+    // Clear current state before loading history
+    setSelectedTopic(null);
+    setStreamingContent('');
+    setCurrentModuleIndex(0);
+    
     const validatedModules = historyModules.map(module => ({
       title: module.title || "Untitled Module",
       topics: Array.isArray(module.topics) ? module.topics : []
     }));
     
     setModules(validatedModules);
-    setCurrentModuleIndex(0);
-    setSelectedTopic(null);
     
     toast.success(`Continuing your journey: "${query}"`);
     
