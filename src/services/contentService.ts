@@ -9,19 +9,25 @@ export async function generateModules(searchQuery: string, maxRetries = 10): Pro
     try {
       let fullResponse = '';
       
-      const prompt = `Generate a structured learning path outline for the topic: "${searchQuery}".
-      Please provide only the module (chapter) titles that would cover this topic comprehensively.
-      Each module should build on the previous one, progressively increasing in complexity or depth.
-      
-      Format the response as JSON that matches this TypeScript interface:
-      {
-        modules: Array<{
-          title: string;
-          topics: Array<any>; // This will be populated later
-        }>
-      }
-      
-      Only respond with the JSON data containing module titles.`;
+      const prompt = `You are an educational content generator. Create a structured learning path for: "${searchQuery}"
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "modules": [
+    {"title": "Module 1 Title", "topics": []},
+    {"title": "Module 2 Title", "topics": []},
+    {"title": "Module 3 Title", "topics": []}
+  ]
+}
+
+Requirements:
+- Generate exactly 3-5 modules that build progressively
+- Each module title should be clear and descriptive
+- Topics array must be empty (will be populated later)
+- Use proper JSON syntax with double quotes
+- Do not include any text before or after the JSON
+
+Start your response with { and end with }`;
       
       await streamChat(prompt, (token) => {
         fullResponse += token;
@@ -73,65 +79,84 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
   const attemptGeneration = async (): Promise<Topic[]> => {
     try {
       let fullResponse = '';
-      let currentTopics: Topic[] = [];
       
-      const prompt = `Generate a list of topics for the module titled: "${moduleTitle}".
-      Please provide at least 4 topics that are specifically related to this module.
-      Each topic should be provided one at a time in a separate JSON object.
-      
-      For each topic, include:
-      - A title
-      - A relevance score (1-10)
-      - A Very short description (2-3 sentences only)
-      
-      Format each topic as a separate JSON object that matches this TypeScript interface:
-      {
-        title: string;
-        relevance: number;
-        description: string;
-      }
-      
-      Provide one topic at a time, with each topic on a new line.`;
+      const prompt = `You are an educational content generator. Create topics for module: "${moduleTitle}"
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "topics": [
+    {
+      "title": "Topic 1 Title",
+      "relevance": 9,
+      "description": "Brief 2-3 sentence description of this topic."
+    },
+    {
+      "title": "Topic 2 Title", 
+      "relevance": 8,
+      "description": "Brief 2-3 sentence description of this topic."
+    }
+  ]
+}
+
+Requirements:
+- Generate exactly 4-6 topics related to the module
+- Each topic must have: title (string), relevance (number 1-10), description (string)
+- Descriptions should be 2-3 sentences maximum
+- Use proper JSON syntax with double quotes
+- Do not include any text before or after the JSON
+
+Start your response with { and end with }`;
       
       await streamChat(prompt, (token) => {
         fullResponse += token;
         
-        const lines = fullResponse.split('\n');
-        for (const line of lines) {
-          if (line.trim()) {
-            try {
-              const jsonStartIndex = line.indexOf('{');
-              const jsonEndIndex = line.lastIndexOf('}') + 1;
-              
-              if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
-                const jsonStr = line.substring(jsonStartIndex, jsonEndIndex);
-                const topic = JSON.parse(jsonStr);
-                
-                if (topic.title && typeof topic.relevance === 'number' && topic.description) {
-                  const topicExists = currentTopics.some(t => t.title === topic.title);
-                  
-                  if (!topicExists) {
-                    currentTopics.push(topic);
-                    if (onTopicGenerated) {
-                      onTopicGenerated(topic);
-                    }
-                  }
+        // Try to parse and emit topics as they come in
+        try {
+          const jsonStartIndex = fullResponse.indexOf('{');
+          const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+          
+          if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+            const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+            const result = JSON.parse(jsonStr);
+            
+            if (result.topics && Array.isArray(result.topics)) {
+              result.topics.forEach((topic: Topic) => {
+                if (topic.title && typeof topic.relevance === 'number' && topic.description && onTopicGenerated) {
+                  onTopicGenerated(topic);
                 }
-              }
-            } catch (e) {}
+              });
+            }
           }
+        } catch (e) {
+          // Continue streaming, will parse at the end
         }
       });
       
-      if (currentTopics.length > 0) {
-        return currentTopics;
+      const jsonStartIndex = fullResponse.indexOf('{');
+      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+        try {
+          const result = JSON.parse(jsonStr);
+          return result.topics || [];
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          console.log("Raw JSON:", jsonStr);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
+        }
       } else {
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
           return attemptGeneration();
         }
-        throw new Error("No valid topics generated after max retries");
+        throw new Error("No valid JSON found in the response after max retries");
       }
     } catch (error) {
       if (retryCount < maxRetries) {
@@ -146,49 +171,46 @@ export async function generateTopics(moduleTitle: string, onTopicGenerated?: (to
   return attemptGeneration();
 }
 
-export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 10): Promise<Topic> {
+export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 10): Promise<string> {
   let retryCount = 0;
   
-  const attemptGeneration = async (): Promise<Topic> => {
+  const attemptGeneration = async (): Promise<string> => {
     try {
       let fullResponse = '';
-      let currentStreamingContent = '';
       
-      const prompt = `Generate detailed information about the topic: "${topic.title}".
-      Please include:
-      - A comprehensive content section (2-3 paragraphs)
-      - 2-3 subtopics, each with title, description, and content
-      - 3-5 references or further reading suggestions
-      
-      Format the response as JSON that matches this TypeScript interface:
-      {
-        title: string;
-        relevance: number;
-        description: string;
-        content: string;
-        subtopics: Array<{
-          title: string;
-          description: string;
-          content: string;
-        }>;
-        references: string[];
-      }
-      
-      Only respond with the JSON data.`;
+      const prompt = `You are an educational content generator. Create detailed main content for topic: "${topic.title}"
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "content": "Detailed educational content about the topic. This should be comprehensive, well-structured, and informative. Include multiple paragraphs, examples, and explanations as needed."
+}
+
+Requirements:
+- Generate comprehensive content (2-4 paragraphs)
+- Content should be educational and informative
+- Use proper JSON syntax with double quotes
+- Escape special characters properly in JSON strings
+- Do not include any text before or after the JSON
+
+Start your response with { and end with }`;
       
       await streamChat(prompt, (token) => {
         fullResponse += token;
         
         if (onStreamUpdate) {
           try {
-            const contentMatch = fullResponse.match(/"content":\s*"([^"]*)"/);            if (contentMatch && contentMatch[1]) {
-              const partialContent = contentMatch[1];
-              if (partialContent !== currentStreamingContent) {
-                currentStreamingContent = partialContent;
+            const jsonStartIndex = fullResponse.indexOf('{');
+            if (jsonStartIndex >= 0) {
+              const partialJson = fullResponse.substring(jsonStartIndex);
+              const contentMatch = partialJson.match(/"content":\s*"([^"\\]*(\\.[^"\\]*)*)"/);
+              if (contentMatch && contentMatch[1]) {
+                const partialContent = contentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
                 onStreamUpdate(partialContent);
               }
             }
-          } catch (e) {}
+          } catch (e) {
+            // Continue streaming
+          }
         }
       });
       
@@ -198,10 +220,92 @@ export async function generateTopicDetail(topic: Topic, onStreamUpdate?: (partia
       if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
         const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
         try {
-          const enrichedTopic = JSON.parse(jsonStr);
+          const result = JSON.parse(jsonStr);
+          return result.content || '';
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          console.log("Raw JSON:", jsonStr);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
+        }
+      } else {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
+      }
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
+    }
+  };
+
+  return attemptGeneration();
+}
+
+export async function generateTopicExtras(topic: Topic, maxRetries = 10): Promise<{subtopics: any[], references: string[]}> {
+  let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<{subtopics: any[], references: string[]}> => {
+    try {
+      let fullResponse = '';
+      
+      const prompt = `You are an educational content generator. Create subtopics and references for topic: "${topic.title}"
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "subtopics": [
+    {
+      "title": "Subtopic 1 Title",
+      "description": "Brief description of this subtopic.",
+      "content": "Detailed content about this subtopic."
+    },
+    {
+      "title": "Subtopic 2 Title",
+      "description": "Brief description of this subtopic.",
+      "content": "Detailed content about this subtopic."
+    }
+  ],
+  "references": [
+    "Reference 1: Book/Article/Website title and author",
+    "Reference 2: Book/Article/Website title and author",
+    "Reference 3: Book/Article/Website title and author"
+  ]
+}
+
+Requirements:
+- Generate exactly 2-3 subtopics with title, description, and content
+- Generate exactly 3-5 references
+- Use proper JSON syntax with double quotes
+- Escape special characters properly in JSON strings
+- Do not include any text before or after the JSON
+
+Start your response with { and end with }`;
+      
+      await streamChat(prompt, (token) => {
+        fullResponse += token;
+      });
+      
+      const jsonStartIndex = fullResponse.indexOf('{');
+      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+        try {
+          const result = JSON.parse(jsonStr);
           return {
-            ...topic,
-            ...enrichedTopic
+            subtopics: result.subtopics || [],
+            references: result.references || []
           };
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
