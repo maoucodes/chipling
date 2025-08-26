@@ -2,7 +2,8 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: "rk_f112c370d4b0f82940d9a4274e9b0b78e547a904af65e933577b825a7b8f3ebd",
-  baseURL: "https://unio.onrender.com/v1/api"
+  baseURL: "https://unio.onrender.com/v1/api",
+  dangerouslyAllowBrowser: true,
 });
 
 export async function streamChat(
