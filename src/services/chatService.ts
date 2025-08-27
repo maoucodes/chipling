@@ -21,7 +21,10 @@ export async function streamChat(
             "You are Chipling, an AI assistant that helps users learn about academic and research topics in a structured way. Provide concise, accurate information and guide the learning process."
         },
         { role: "user", content: message }
-      ]
+      ],
+      extra_headers: {
+            "X-Fallback-Model": "groq:openai/gpt-oss-120b"  
+        }
     });
 
     let completeResponse = "";
