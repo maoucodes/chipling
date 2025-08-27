@@ -1,80 +1,17 @@
-import OpenAI from "openai";
 
-// Initialize OpenAI client (replace with your own URL + key)
-const client = new OpenAI({
-  apiKey: "rk_fa4f3725055a5a20e6f1737d32e87e3ffd137864497314ee4da4aadf07e7e6a0",
-  baseURL: "https://unio.onrender.com/v1/api",
-  dangerouslyAllowBrowser: true, // Browser-safe mode
-});
+import { Module, Topic } from '@/types/knowledge';
+import { streamChat } from './chatService';
 
-// Types
-export interface Module {
-  title: string;
-  topics: Topic[];
-}
-
-export interface Topic {
-  title: string;
-  content?: string;
-  extras?: string[];
-}
-
-// ----------------------
-// Shared JSON extractor
-// ----------------------
-function extractJSON(fullResponse: string) {
-  // Remove accidental code fences
-  const clean = fullResponse.replace(/```json|```/g, "").trim();
-
-  // Locate JSON boundaries
-  const jsonStartIndex = clean.indexOf("{");
-  const jsonEndIndex = clean.lastIndexOf("}") + 1;
-
-  if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
-    const jsonStr = clean.slice(jsonStartIndex, jsonEndIndex);
-    try {
-      return JSON.parse(jsonStr);
-    } catch {
-      console.warn("JSON parse failed — likely incomplete stream.");
-    }
-  }
-  return null;
-}
-
-// ----------------------
-// Streaming helper
-// ----------------------
-async function streamChat(prompt: string, onToken?: (token: string) => void) {
-  let response = "";
-
-  const stream = await client.chat.completions.create({
-    model: "google:gemini-2.5-flash",
-    stream: true,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  for await (const chunk of stream) {
-    const token = chunk.choices[0]?.delta?.content || "";
-    response += token;
-    if (onToken) onToken(token);
-  }
-
-  return response;
-}
-
-// ----------------------
-// Module Generator
-// ----------------------
-export async function generateModules(
-  searchQuery: string,
-  maxRetries = 5
-): Promise<Module[]> {
+export async function generateModules(searchQuery: string, maxRetries = 10): Promise<Module[]> {
   let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<Module[]> => {
+    try {
+      let fullResponse = '';
+      
+      const prompt = `You are an educational content generator. Create a structured learning path for: "${searchQuery}"
 
-  const attempt = async (): Promise<Module[]> => {
-    const prompt = `You are an educational content generator. Create a structured learning path for: "${searchQuery}"
-
-Return ONLY valid JSON in this format:
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
 {
   "modules": [
     {"title": "Module 1 Title", "topics": []},
@@ -83,114 +20,320 @@ Return ONLY valid JSON in this format:
   ]
 }
 
-Rules:
-- Generate 3-5 modules
-- topics array must be empty
-- Start with { and end with }`;
+Requirements:
+- Generate exactly 3-5 modules that build progressively
+- Each module title should be clear and descriptive
+- Topics array must be empty (will be populated later)
+- Use proper JSON syntax with double quotes
+- Do not include any text before or after the JSON
 
-    const fullResponse = await streamChat(prompt);
-    const parsed = extractJSON(fullResponse);
-
-    if (parsed?.modules) return parsed.modules;
-
-    if (retryCount < maxRetries) {
-      retryCount++;
-      console.log(`Retrying generateModules ${retryCount}/${maxRetries}`);
-      return attempt();
+Start your response with { and end with }`;
+      
+      await streamChat(prompt, (token) => {
+        fullResponse += token;
+      });
+      
+      const jsonStartIndex = fullResponse.indexOf('{');
+      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+        try {
+          const result = JSON.parse(jsonStr);
+          const modules = result.modules || [result];
+          return modules;
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          console.log("Raw JSON:", jsonStr);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
+        }
+      } else {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
+      }
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
     }
-    throw new Error("Failed to parse modules after retries");
   };
 
-  return attempt();
+  return attemptGeneration();
 }
 
-// ----------------------
-// Topic Generator
-// ----------------------
-export async function generateTopics(
-  moduleTitle: string,
-  maxRetries = 5
-): Promise<Topic[]> {
+export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void, maxRetries = 10): Promise<Topic[]> {
   let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<Topic[]> => {
+    try {
+      let fullResponse = '';
+      
+      const prompt = `You are an educational content generator. Create topics for module: "${moduleTitle}"
 
-  const attempt = async (): Promise<Topic[]> => {
-    const prompt = `Generate topics for the module: "${moduleTitle}".
-Return ONLY valid JSON:
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
 {
   "topics": [
-    {"title": "Topic 1"},
-    {"title": "Topic 2"},
-    {"title": "Topic 3"}
-  ]
-}`;
-
-    const fullResponse = await streamChat(prompt);
-    const parsed = extractJSON(fullResponse);
-
-    if (parsed?.topics) return parsed.topics;
-
-    if (retryCount < maxRetries) {
-      retryCount++;
-      console.log(`Retrying generateTopics ${retryCount}/${maxRetries}`);
-      return attempt();
+    {
+      "title": "Topic 1 Title",
+      "relevance": 9,
+      "description": "Brief 2-3 sentence description of this topic."
+    },
+    {
+      "title": "Topic 2 Title", 
+      "relevance": 8,
+      "description": "Brief 2-3 sentence description of this topic."
     }
-    throw new Error("Failed to parse topics after retries");
+  ]
+}
+
+Requirements:
+- Generate exactly 4-6 topics related to the module
+- Each topic must have: title (string), relevance (number 1-10), description (string)
+- Descriptions should be 2-3 sentences maximum
+- Use proper JSON syntax with double quotes
+- Do not include any text before or after the JSON
+
+Start your response with { and end with }`;
+      
+      await streamChat(prompt, (token) => {
+        fullResponse += token;
+        
+        // Try to parse and emit topics as they come in
+        try {
+          const jsonStartIndex = fullResponse.indexOf('{');
+          const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+          
+          if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+            const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+            const result = JSON.parse(jsonStr);
+            
+            if (result.topics && Array.isArray(result.topics)) {
+              result.topics.forEach((topic: Topic) => {
+                if (topic.title && typeof topic.relevance === 'number' && topic.description && onTopicGenerated) {
+                  onTopicGenerated(topic);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          // Continue streaming, will parse at the end
+        }
+      });
+      
+      const jsonStartIndex = fullResponse.indexOf('{');
+      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+        try {
+          const result = JSON.parse(jsonStr);
+          return result.topics || [];
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          console.log("Raw JSON:", jsonStr);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
+        }
+      } else {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
+      }
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
+    }
   };
 
-  return attempt();
+  return attemptGeneration();
 }
 
-// ----------------------
-// Topic Content Generator
-// ----------------------
-export async function generateTopicMainContent(
-  topicTitle: string,
-  onStreamUpdate?: (partial: string) => void
-): Promise<string> {
-  const prompt = `Write detailed educational content for the topic: "${topicTitle}".
-Return plain text (no JSON).`;
-
-  const fullResponse = await streamChat(prompt, (token) => {
-    if (onStreamUpdate) onStreamUpdate(token);
-  });
-
-  return fullResponse.trim();
-}
-
-// ----------------------
-// Topic Extras Generator
-// ----------------------
-export async function generateTopicExtras(
-  topicTitle: string,
-  maxRetries = 5
-): Promise<string[]> {
+export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 10): Promise<string> {
   let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<string> => {
+    try {
+      let fullResponse = '';
+      
+      const prompt = `You are an educational content generator. Create detailed main content for topic: "${topic.title}"
 
-  const attempt = async (): Promise<string[]> => {
-    const prompt = `Generate 3-5 extra learning resources (like fun facts, exercises, or questions)
-for the topic: "${topicTitle}".
-
-Return ONLY valid JSON:
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
 {
-  "extras": [
-    "Extra resource 1",
-    "Extra resource 2",
-    "Extra resource 3"
-  ]
-}`;
+  "content": "Detailed educational content about the topic. This should be comprehensive, well-structured, and informative. Include multiple paragraphs, examples, and explanations as needed."
+}
 
-    const fullResponse = await streamChat(prompt);
-    const parsed = extractJSON(fullResponse);
+Requirements:
+- Generate comprehensive content (2-4 paragraphs)
+- Content should be educational and informative
+- Use proper JSON syntax with double quotes
+- Escape special characters properly in JSON strings
+- Do not include any text before or after the JSON
 
-    if (parsed?.extras) return parsed.extras;
-
-    if (retryCount < maxRetries) {
-      retryCount++;
-      console.log(`Retrying generateTopicExtras ${retryCount}/${maxRetries}`);
-      return attempt();
+Start your response with { and end with }`;
+      
+      await streamChat(prompt, (token) => {
+        fullResponse += token;
+        
+        if (onStreamUpdate) {
+          try {
+            const jsonStartIndex = fullResponse.indexOf('{');
+            if (jsonStartIndex >= 0) {
+              const partialJson = fullResponse.substring(jsonStartIndex);
+              const contentMatch = partialJson.match(/"content":\s*"([^"\\]*(\\.[^"\\]*)*)"/);
+              if (contentMatch && contentMatch[1]) {
+                const partialContent = contentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+                onStreamUpdate(partialContent);
+              }
+            }
+          } catch (e) {
+            // Continue streaming
+          }
+        }
+      });
+      
+      const jsonStartIndex = fullResponse.indexOf('{');
+      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+        try {
+          const result = JSON.parse(jsonStr);
+          return result.content || '';
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          console.log("Raw JSON:", jsonStr);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
+        }
+      } else {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
+      }
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
     }
-    throw new Error("Failed to parse extras after retries");
   };
 
-  return attempt();
+  return attemptGeneration();
+}
+
+export async function generateTopicExtras(topic: Topic, maxRetries = 10): Promise<{subtopics: any[], references: string[]}> {
+  let retryCount = 0;
+  
+  const attemptGeneration = async (): Promise<{subtopics: any[], references: string[]}> => {
+    try {
+      let fullResponse = '';
+      
+      const prompt = `You are an educational content generator. Create subtopics and references for topic: "${topic.title}"
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "subtopics": [
+    {
+      "title": "Subtopic 1 Title",
+      "description": "Brief description of this subtopic.",
+      "content": "Detailed content about this subtopic."
+    },
+    {
+      "title": "Subtopic 2 Title",
+      "description": "Brief description of this subtopic.",
+      "content": "Detailed content about this subtopic."
+    }
+  ],
+  "references": [
+    "Reference 1: Book/Article/Website title and author",
+    "Reference 2: Book/Article/Website title and author",
+    "Reference 3: Book/Article/Website title and author"
+  ]
+}
+
+Requirements:
+- Generate exactly 2-3 subtopics with title, description, and content
+- Generate exactly 3-5 references
+- Use proper JSON syntax with double quotes
+- Escape special characters properly in JSON strings
+- Do not include any text before or after the JSON
+
+Start your response with { and end with }`;
+      
+      await streamChat(prompt, (token) => {
+        fullResponse += token;
+      });
+      
+      const jsonStartIndex = fullResponse.indexOf('{');
+      const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
+        try {
+          const result = JSON.parse(jsonStr);
+          return {
+            subtopics: result.subtopics || [],
+            references: result.references || []
+          };
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          console.log("Raw JSON:", jsonStr);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            return attemptGeneration();
+          }
+          throw new Error("Failed to parse generated content after max retries");
+        }
+      } else {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          return attemptGeneration();
+        }
+        throw new Error("No valid JSON found in the response after max retries");
+      }
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        return attemptGeneration();
+      }
+      throw error;
+    }
+  };
+
+  return attemptGeneration();
 }
