@@ -8,7 +8,7 @@ import { Module, Topic } from "@/types/knowledge";
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBKUKCci6NWh1mCX8gPZC8BUzSgyAiiYmc",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY_HERE",
   authDomain: "chipling-6505e.firebaseapp.com",
   projectId: "chipling-6505e",
   storageBucket: "chipling-6505e.firebasestorage.app",
@@ -57,7 +57,6 @@ const retryOperation = async <T>(operation: () => Promise<T>, maxRetries = 3, de
     } catch (error) {
       lastError = error as Error;
       if (i < maxRetries) {
-        console.log(`Operation failed, retrying in ${delay}ms... (attempt ${i + 1}/${maxRetries + 1})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         delay *= 2; // Exponential backoff
       }
@@ -180,7 +179,6 @@ export const getUserData = async (uid: string): Promise<FirebaseUser | null> => 
 export const saveSearchHistory = async (uid: string, query: string, modules: Module[]): Promise<string> => {
   return retryOperation(async () => {
     try {
-      console.log(`Saving search history for user ${uid}: ${query}`);
       const historyRef = ref(database, `history/${uid}`);
       const newHistoryRef = push(historyRef);
       
@@ -199,10 +197,8 @@ export const saveSearchHistory = async (uid: string, query: string, modules: Mod
       };
       
       await set(newHistoryRef, historyEntry);
-      console.log(`History entry saved with ID: ${newHistoryRef.key}`);
       return newHistoryRef.key as string;
     } catch (error) {
-      console.error("Error saving search history", error);
       throw error;
     }
   });
@@ -216,7 +212,6 @@ export const updateHistoryProgress = async (
 ): Promise<void> => {
   return retryOperation(async () => {
     try {
-      console.log(`Updating history progress for user ${uid}, history ${historyId}: ${completedTopics} topics`);
       const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
       const snapshot = await get(historyEntryRef);
       
@@ -230,13 +225,10 @@ export const updateHistoryProgress = async (
           lastAccessedAt: Date.now(),
           moduleProgress
         });
-        console.log(`Updated progress to ${progress}% with module progress:`, moduleProgress);
       } else {
-        console.error(`History entry ${historyId} not found for user ${uid}`);
         throw new Error(`History entry not found: ${historyId}`);
       }
     } catch (error) {
-      console.error("Error updating history progress", error);
       throw error;
     }
   });
@@ -246,16 +238,12 @@ export const saveTopicDetails = async (uid: string, historyId: string, moduleInd
   return retryOperation(async () => {
     try {
       if (!uid || !historyId) {
-        console.log("Not saving topic details - missing user ID or history ID");
         return;
       }
       
-      console.log(`Saving topic details for user ${uid}, history ${historyId}, module ${moduleIndex}, topic ${topicIndex}`);
       const topicRef = ref(database, `history/${uid}/${historyId}/modules/${moduleIndex}/topics/${topicIndex}`);
       await update(topicRef, topic);
-      console.log("Topic details saved successfully");
     } catch (error) {
-      console.error("Error saving topic details", error);
       throw error;
     }
   });
@@ -264,12 +252,9 @@ export const saveTopicDetails = async (uid: string, historyId: string, moduleInd
 export const deleteHistoryEntry = async (uid: string, historyId: string): Promise<void> => {
   return retryOperation(async () => {
     try {
-      console.log(`Deleting history entry ${historyId} for user ${uid}`);
       const historyEntryRef = ref(database, `history/${uid}/${historyId}`);
       await remove(historyEntryRef);
-      console.log(`History entry deleted successfully`);
     } catch (error) {
-      console.error("Error deleting history entry", error);
       throw error;
     }
   });
@@ -278,7 +263,6 @@ export const deleteHistoryEntry = async (uid: string, historyId: string): Promis
 export const getSearchHistory = async (uid: string): Promise<HistoryEntry[]> => {
   return retryOperation(async () => {
     try {
-      console.log(`Getting search history for user ${uid}`);
       const historyRef = ref(database, `history/${uid}`);
       const snapshot = await get(historyRef);
       
@@ -288,14 +272,11 @@ export const getSearchHistory = async (uid: string): Promise<HistoryEntry[]> => 
           ...historyData[key],
           id: key
         }));
-        console.log(`Found ${historyEntries.length} history entries`);
         return historyEntries.sort((a, b) => b.lastAccessedAt - a.lastAccessedAt);
       } else {
-        console.log(`No history entries found for user ${uid}`);
         return [];
       }
     } catch (error) {
-      console.error("Error getting search history", error);
       throw error;
     }
   });

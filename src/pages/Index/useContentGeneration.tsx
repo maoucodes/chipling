@@ -19,7 +19,6 @@ export const useContentGeneration = () => {
   const [searchInProgress, setSearchInProgress] = useState(false);
 
   const resetState = () => {
-    console.log("Resetting state in useContentGeneration");
     setSelectedTopic(null);
     setStreamingContent('');
     setModules([]);
@@ -31,7 +30,6 @@ export const useContentGeneration = () => {
   const handleSearch = async (query: string) => {
     // Prevent multiple concurrent searches
     if (searchInProgress) {
-      console.log("Search already in progress, ignoring new search request");
       return;
     }
     
@@ -62,16 +60,12 @@ export const useContentGeneration = () => {
       
       if (isAuthenticated) {
         try {
-          console.log("Saving search to history:", query);
           const historyId = await addToHistory(query, generatedModules);
-          console.log("History saved with ID:", historyId);
           setCurrentHistoryId(historyId);
         } catch (error) {
           console.error("Error saving to history:", error);
           toast.error("Failed to save your journey to history");
         }
-      } else {
-        console.log("User not authenticated, not saving search to history");
       }
     } catch (error) {
       console.error("Error generating content:", error);
@@ -79,7 +73,7 @@ export const useContentGeneration = () => {
       setModules([]);
     } finally {
       setIsLoading(false);
-      // Don't reset searchInProgress here as we want to keep it true until the search is fully completed
+      setSearchInProgress(false);
     }
   };
 
@@ -154,23 +148,18 @@ export const useContentGeneration = () => {
   };
 
   const handleBackToTopics = () => {
-    console.log("handleBackToTopics called in useContentGeneration hook");
     setSelectedTopic(null);
     setStreamingContent('');
   };
 
   const resetSearch = () => {
-    console.log("Resetting search state in useContentGeneration hook");
     resetState();
     setSearchInProgress(false);
   };
 
   const handleSelectHistory = (query: string, historyModules: Module[]) => {
-    console.log("Selected history modules:", historyModules);
-    
     if (!historyModules || !Array.isArray(historyModules)) {
       toast.error("Invalid history data");
-      console.error("Invalid history modules data:", historyModules);
       return;
     }
     

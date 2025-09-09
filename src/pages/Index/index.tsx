@@ -64,7 +64,6 @@ const Index: FC = () => {
   };
 
   const handleNewSearch = () => {
-    console.log("New search button clicked in Index component");
     setSearchPerformed(false);
     setShowLearningPath(false);
     setCompletedTopics({});
@@ -123,7 +122,6 @@ const Index: FC = () => {
   
   const renderContent = () => {
     if (selectedTopic !== null) {
-      console.log("Rendering TopicDetail with onBack function:", handleBackToTopics);
       return (
         <ErrorBoundary>
           <TopicDetail 

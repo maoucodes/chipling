@@ -44,47 +44,42 @@ Start your response with { and end with }`;
           
           // Validate the structure
           if (!Array.isArray(modules) || modules.length === 0) {
-            throw new Error("Invalid module structure returned");
+            throw new Error(`Invalid module structure returned for query: ${searchQuery}`);
           }
           
           // Ensure each module has the required properties
-          const validatedModules = modules.map(module => ({
-            title: module.title || "Untitled Module",
+          const validatedModules = modules.map((module, index) => ({
+            title: module.title || `Untitled Module ${index + 1}`,
             topics: Array.isArray(module.topics) ? module.topics : []
           }));
           
           return validatedModules;
         } catch (parseError) {
-          console.error("Error parsing JSON:", parseError);
-          console.log("Raw JSON:", jsonStr);
           if (retryCount < maxRetries) {
             retryCount++;
-            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
             // Add a small delay before retrying
             await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
-          throw new Error("Failed to parse generated content after max retries");
+          throw new Error(`Failed to parse generated modules for query: ${searchQuery} after ${maxRetries} retries. Error: ${parseError.message}`);
         }
       } else {
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
           // Add a small delay before retrying
           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
-        throw new Error("No valid JSON found in the response after max retries");
+        throw new Error(`No valid JSON found in the response for query: ${searchQuery} after ${maxRetries} retries`);
       }
     } catch (error) {
       if (retryCount < maxRetries) {
         retryCount++;
-        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
         // Add a small delay before retrying
         await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
-      throw error;
+      throw new Error(`Failed to generate modules for query: ${searchQuery} after ${maxRetries} retries. Error: ${error.message}`);
     }
   };
 
@@ -162,48 +157,43 @@ Start your response with { and end with }`;
           
           // Validate topics structure
           if (!Array.isArray(topics)) {
-            throw new Error("Invalid topics structure returned");
+            throw new Error(`Invalid topics structure returned for module: ${moduleTitle}`);
           }
           
           // Ensure each topic has the required properties
-          const validatedTopics = topics.map(topic => ({
-            title: topic.title || "Untitled Topic",
+          const validatedTopics = topics.map((topic, index) => ({
+            title: topic.title || `Untitled Topic ${index + 1}`,
             relevance: typeof topic.relevance === 'number' ? topic.relevance : 5,
             description: topic.description || "No description available"
           }));
           
           return validatedTopics;
         } catch (parseError) {
-          console.error("Error parsing JSON:", parseError);
-          console.log("Raw JSON:", jsonStr);
           if (retryCount < maxRetries) {
             retryCount++;
-            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
             // Add a small delay before retrying
             await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
-          throw new Error("Failed to parse generated content after max retries");
+          throw new Error(`Failed to parse generated topics for module: ${moduleTitle} after ${maxRetries} retries. Error: ${parseError.message}`);
         }
       } else {
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
           // Add a small delay before retrying
           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
-        throw new Error("No valid JSON found in the response after max retries");
+        throw new Error(`No valid JSON found in the response for module: ${moduleTitle} after ${maxRetries} retries`);
       }
     } catch (error) {
       if (retryCount < maxRetries) {
         retryCount++;
-        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
         // Add a small delay before retrying
         await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
-      throw error;
+      throw new Error(`Failed to generate topics for module: ${moduleTitle} after ${maxRetries} retries. Error: ${error.message}`);
     }
   };
 
@@ -262,36 +252,31 @@ Start your response with { and end with }`;
           const result = JSON.parse(jsonStr);
           return result.content || '';
         } catch (parseError) {
-          console.error("Error parsing JSON:", parseError);
-          console.log("Raw JSON:", jsonStr);
           if (retryCount < maxRetries) {
             retryCount++;
-            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
             // Add a small delay before retrying
             await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
-          throw new Error("Failed to parse generated content after max retries");
+          throw new Error(`Failed to parse generated content for topic: ${topic.title} after ${maxRetries} retries. Error: ${parseError.message}`);
         }
       } else {
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
           // Add a small delay before retrying
           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
-        throw new Error("No valid JSON found in the response after max retries");
+        throw new Error(`No valid JSON found in the response for topic: ${topic.title} after ${maxRetries} retries`);
       }
     } catch (error) {
       if (retryCount < maxRetries) {
         retryCount++;
-        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
         // Add a small delay before retrying
         await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
-      throw error;
+      throw new Error(`Failed to generate content for topic: ${topic.title} after ${maxRetries} retries. Error: ${error.message}`);
     }
   };
 
@@ -340,7 +325,7 @@ Start your response with { and end with }`;
       await streamChat(prompt, (token) => {
         fullResponse += token;
       });
-      
+
       const jsonStartIndex = fullResponse.indexOf('{');
       const jsonEndIndex = fullResponse.lastIndexOf('}') + 1;
       
@@ -353,36 +338,31 @@ Start your response with { and end with }`;
             references: Array.isArray(result.references) ? result.references : []
           };
         } catch (parseError) {
-          console.error("Error parsing JSON:", parseError);
-          console.log("Raw JSON:", jsonStr);
           if (retryCount < maxRetries) {
             retryCount++;
-            console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
             // Add a small delay before retrying
             await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
-          throw new Error("Failed to parse generated content after max retries");
+          throw new Error(`Failed to parse generated extras for topic: ${topic.title} after ${maxRetries} retries. Error: ${parseError.message}`);
         }
       } else {
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
           // Add a small delay before retrying
           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
-        throw new Error("No valid JSON found in the response after max retries");
+        throw new Error(`No valid JSON found in the response for topic: ${topic.title} after ${maxRetries} retries`);
       }
     } catch (error) {
       if (retryCount < maxRetries) {
         retryCount++;
-        console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
         // Add a small delay before retrying
         await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
-      throw error;
+      throw new Error(`Failed to generate extras for topic: ${topic.title} after ${maxRetries} retries. Error: ${error.message}`);
     }
   };
 

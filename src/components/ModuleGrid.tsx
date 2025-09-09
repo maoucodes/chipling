@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, memo } from 'react';
 import TopicCard from './TopicCard';
 import LoadingTopicCard from './LoadingTopicCard';
 import { Module, Topic } from '@/types/knowledge';
@@ -11,6 +11,26 @@ interface ModuleGridProps {
   currentModuleIndex: number;
   onNextModule?: () => void;
 }
+
+// Memoized TopicCard component to prevent unnecessary re-renders
+const MemoizedTopicCard = memo(({ 
+  title, 
+  relevance, 
+  description, 
+  onClick 
+}: { 
+  title: string; 
+  relevance: number; 
+  description: string; 
+  onClick: () => void; 
+}) => (
+  <TopicCard
+    title={title}
+    relevance={relevance}
+    description={description}
+    onClick={onClick}
+  />
+));
 
 const ModuleGrid: FC<ModuleGridProps> = ({ 
   modules, 
@@ -51,7 +71,7 @@ const ModuleGrid: FC<ModuleGridProps> = ({
       <div className="flex-1 overflow-y-auto py-4 md:py-6 scrollbar-thin">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {currentModule.topics.map((topic, topicIndex) => (
-            <TopicCard
+            <MemoizedTopicCard
               key={`${currentModuleIndex}-${topicIndex}`}
               title={topic.title}
               relevance={topic.relevance}
@@ -75,4 +95,4 @@ const ModuleGrid: FC<ModuleGridProps> = ({
   );
 };
 
-export default ModuleGrid;
+export default memo(ModuleGrid);

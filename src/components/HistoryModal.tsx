@@ -32,7 +32,6 @@ const HistoryModal: FC<HistoryModalProps> = ({ isOpen, onClose, onSelectHistory 
       topics: Array.isArray(module.topics) ? module.topics : []
     }));
     
-    console.log("Continuing journey with modules:", validModules);
     onSelectHistory(entry.query, validModules);
     onClose();
   };

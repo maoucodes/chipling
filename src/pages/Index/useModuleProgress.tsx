@@ -48,7 +48,6 @@ export const useModuleProgress = (modules: Module[], currentHistoryId: string | 
         
         try {
           await updateProgress(currentHistoryId, completed, moduleProgressData);
-          console.log(`Updated progress for history ID ${currentHistoryId}: ${completed} topics completed, module progress:`, moduleProgressData);
         } catch (error) {
           console.error("Error updating history progress:", error);
         }

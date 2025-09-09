@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: "rk_c5f43e7ec775b73228f1c42b07a8fe152bbbbec93a69713d0b7964c165a53d44",
-  baseURL: "https://unio.onrender.com/v1/api",
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY || "YOUR_API_KEY_HERE",
+  baseURL: import.meta.env.VITE_OPENAI_BASE_URL || "https://unio.onrender.com/v1/api",
   dangerouslyAllowBrowser: true,
 });
 

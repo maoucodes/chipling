@@ -39,10 +39,7 @@ const Header = ({ onOpenSidebar }: HeaderProps) => {
             variant="ghost" 
             size="icon" 
             className="md:hidden" 
-            onClick={() => {
-              console.log("Mobile menu button clicked");
-              onOpenSidebar();
-            }}
+            onClick={onOpenSidebar}
           >
             <MenuIcon className="h-5 w-5" />
             <span className="sr-only">Open menu</span>

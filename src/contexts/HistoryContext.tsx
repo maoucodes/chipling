@@ -45,7 +45,6 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
       if (isAuthenticated && user) {
         setLoading(true);
         try {
-          console.log(`Fetching history for user ${user.uid}`);
           const entries = await getSearchHistory(user.uid);
           
           // Ensure all entries have valid module structures
@@ -61,14 +60,12 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
           }));
           
           setHistory(validEntries);
-          console.log(`Fetched ${validEntries.length} history entries`);
         } catch (error) {
           console.error('Error fetching history:', error);
         } finally {
           setLoading(false);
         }
       } else {
-        console.log('User not authenticated, setting history to empty array');
         setHistory([]);
       }
     };
@@ -78,12 +75,9 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
 
   const addToHistory = async (query: string, modules: Module[]): Promise<string> => {
     if (!isAuthenticated || !user) {
-      console.error('User must be authenticated to add to history');
       throw new Error('User must be authenticated to add to history');
     }
 
-    console.log(`Adding to history for user ${user.uid}: ${query}`);
-    
     // Ensure modules have proper structure before saving
     const validModules = modules.map(module => ({
       ...module,
@@ -117,11 +111,9 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
 
   const updateProgress = async (historyId: string, completedTopics: number, moduleProgress: Record<number, number>): Promise<void> => {
     if (!isAuthenticated || !user) {
-      console.error('User must be authenticated to update progress');
       throw new Error('User must be authenticated to update progress');
     }
 
-    console.log(`Updating progress for history entry ${historyId}: ${completedTopics} topics, module progress:`, moduleProgress);
     await updateHistoryProgress(user.uid, historyId, completedTopics, moduleProgress);
     
     // Update local state
@@ -144,12 +136,10 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
   
   const saveTopicDetail = async (historyId: string, moduleIndex: number, topicIndex: number, topic: Topic): Promise<void> => {
     if (!isAuthenticated || !user) {
-      console.log('User not authenticated, not saving topic details');
       return;
     }
     
     try {
-      console.log(`Saving topic details for history ${historyId}, module ${moduleIndex}, topic ${topicIndex}`);
       await saveTopicDetails(user.uid, historyId, moduleIndex, topicIndex, topic);
       
       // Update local state
@@ -178,11 +168,9 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({ children }) =>
 
   const deleteEntry = async (historyId: string): Promise<void> => {
     if (!isAuthenticated || !user) {
-      console.error('User must be authenticated to delete history');
       throw new Error('User must be authenticated to delete history');
     }
 
-    console.log(`Deleting history entry ${historyId}`);
     await deleteHistoryEntry(user.uid, historyId);
     
     // Update local state
