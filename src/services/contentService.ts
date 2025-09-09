@@ -2,7 +2,7 @@
 import { Module, Topic } from '@/types/knowledge';
 import { streamChat } from './chatService';
 
-export async function generateModules(searchQuery: string, maxRetries = 10): Promise<Module[]> {
+export async function generateModules(searchQuery: string, maxRetries = 3): Promise<Module[]> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<Module[]> => {
@@ -41,13 +41,27 @@ Start your response with { and end with }`;
         try {
           const result = JSON.parse(jsonStr);
           const modules = result.modules || [result];
-          return modules;
+          
+          // Validate the structure
+          if (!Array.isArray(modules) || modules.length === 0) {
+            throw new Error("Invalid module structure returned");
+          }
+          
+          // Ensure each module has the required properties
+          const validatedModules = modules.map(module => ({
+            title: module.title || "Untitled Module",
+            topics: Array.isArray(module.topics) ? module.topics : []
+          }));
+          
+          return validatedModules;
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
           console.log("Raw JSON:", jsonStr);
           if (retryCount < maxRetries) {
             retryCount++;
             console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            // Add a small delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
           throw new Error("Failed to parse generated content after max retries");
@@ -56,6 +70,8 @@ Start your response with { and end with }`;
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          // Add a small delay before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
         throw new Error("No valid JSON found in the response after max retries");
@@ -64,6 +80,8 @@ Start your response with { and end with }`;
       if (retryCount < maxRetries) {
         retryCount++;
         console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        // Add a small delay before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
       throw error;
@@ -73,7 +91,7 @@ Start your response with { and end with }`;
   return attemptGeneration();
 }
 
-export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void, maxRetries = 10): Promise<Topic[]> {
+export async function generateTopics(moduleTitle: string, onTopicGenerated?: (topic: Topic) => void, maxRetries = 3): Promise<Topic[]> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<Topic[]> => {
@@ -121,6 +139,7 @@ Start your response with { and end with }`;
             
             if (result.topics && Array.isArray(result.topics)) {
               result.topics.forEach((topic: Topic) => {
+                // Validate topic structure
                 if (topic.title && typeof topic.relevance === 'number' && topic.description && onTopicGenerated) {
                   onTopicGenerated(topic);
                 }
@@ -139,13 +158,29 @@ Start your response with { and end with }`;
         const jsonStr = fullResponse.substring(jsonStartIndex, jsonEndIndex);
         try {
           const result = JSON.parse(jsonStr);
-          return result.topics || [];
+          const topics = result.topics || [];
+          
+          // Validate topics structure
+          if (!Array.isArray(topics)) {
+            throw new Error("Invalid topics structure returned");
+          }
+          
+          // Ensure each topic has the required properties
+          const validatedTopics = topics.map(topic => ({
+            title: topic.title || "Untitled Topic",
+            relevance: typeof topic.relevance === 'number' ? topic.relevance : 5,
+            description: topic.description || "No description available"
+          }));
+          
+          return validatedTopics;
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
           console.log("Raw JSON:", jsonStr);
           if (retryCount < maxRetries) {
             retryCount++;
             console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            // Add a small delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
           throw new Error("Failed to parse generated content after max retries");
@@ -154,6 +189,8 @@ Start your response with { and end with }`;
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          // Add a small delay before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
         throw new Error("No valid JSON found in the response after max retries");
@@ -162,6 +199,8 @@ Start your response with { and end with }`;
       if (retryCount < maxRetries) {
         retryCount++;
         console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        // Add a small delay before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
       throw error;
@@ -171,7 +210,7 @@ Start your response with { and end with }`;
   return attemptGeneration();
 }
 
-export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 10): Promise<string> {
+export async function generateTopicMainContent(topic: Topic, onStreamUpdate?: (partialContent: string) => void, maxRetries = 3): Promise<string> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<string> => {
@@ -228,6 +267,8 @@ Start your response with { and end with }`;
           if (retryCount < maxRetries) {
             retryCount++;
             console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            // Add a small delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
           throw new Error("Failed to parse generated content after max retries");
@@ -236,6 +277,8 @@ Start your response with { and end with }`;
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          // Add a small delay before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
         throw new Error("No valid JSON found in the response after max retries");
@@ -244,6 +287,8 @@ Start your response with { and end with }`;
       if (retryCount < maxRetries) {
         retryCount++;
         console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        // Add a small delay before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
       throw error;
@@ -253,7 +298,7 @@ Start your response with { and end with }`;
   return attemptGeneration();
 }
 
-export async function generateTopicExtras(topic: Topic, maxRetries = 10): Promise<{subtopics: any[], references: string[]}> {
+export async function generateTopicExtras(topic: Topic, maxRetries = 3): Promise<{subtopics: any[], references: string[]}> {
   let retryCount = 0;
   
   const attemptGeneration = async (): Promise<{subtopics: any[], references: string[]}> => {
@@ -304,8 +349,8 @@ Start your response with { and end with }`;
         try {
           const result = JSON.parse(jsonStr);
           return {
-            subtopics: result.subtopics || [],
-            references: result.references || []
+            subtopics: Array.isArray(result.subtopics) ? result.subtopics : [],
+            references: Array.isArray(result.references) ? result.references : []
           };
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
@@ -313,6 +358,8 @@ Start your response with { and end with }`;
           if (retryCount < maxRetries) {
             retryCount++;
             console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+            // Add a small delay before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
             return attemptGeneration();
           }
           throw new Error("Failed to parse generated content after max retries");
@@ -321,6 +368,8 @@ Start your response with { and end with }`;
         if (retryCount < maxRetries) {
           retryCount++;
           console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+          // Add a small delay before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
           return attemptGeneration();
         }
         throw new Error("No valid JSON found in the response after max retries");
@@ -329,6 +378,8 @@ Start your response with { and end with }`;
       if (retryCount < maxRetries) {
         retryCount++;
         console.log(`Retrying generation attempt ${retryCount}/${maxRetries}`);
+        // Add a small delay before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         return attemptGeneration();
       }
       throw error;

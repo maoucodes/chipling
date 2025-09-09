@@ -23,6 +23,7 @@ const TopicDetail: FC<TopicDetailProps> = ({
   moduleIndex,
   topicIndex 
 }) => {
+  console.log("TopicDetail component rendered with onBack:", onBack);
   const [expandedSubtopics, setExpandedSubtopics] = useState<Record<number, boolean>>({});
   const [isVisible, setIsVisible] = useState(false);
   const isLoading = !topic || (!topic.content && !streamingContent);
@@ -73,7 +74,12 @@ const TopicDetail: FC<TopicDetailProps> = ({
           variant="ghost" 
           size="sm" 
           className="transition-all duration-300 hover:translate-x-[-4px]" 
-          onClick={onBack}
+          onClick={(e) => {
+            console.log("Back button clicked in TopicDetail");
+            e.preventDefault();
+            e.stopPropagation();
+            onBack();
+          }}
         >
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
           <span className="hidden sm:inline">Back to all topics</span>

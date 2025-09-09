@@ -22,12 +22,7 @@ const SearchInput: FC<SearchInputProps> = ({ onSearch, onLoginRequired }) => {
       return;
     }
     
-    if (!isAuthenticated) {
-      // User needs to login first
-      onLoginRequired();
-      return;
-    }
-    
+    // Allow searches without authentication, but prompt for login to save history
     try {
       // Proceed with the search
       onSearch(query);

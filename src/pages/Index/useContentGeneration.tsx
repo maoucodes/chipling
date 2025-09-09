@@ -10,27 +10,44 @@ export const useContentGeneration = () => {
   const { isAuthenticated } = useAuth();
   const { addToHistory } = useHistory();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<'modules' | 'topics' | 'content'>('modules');
   const [modules, setModules] = useState<Module[]>([]);
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<{moduleIndex: number, topicIndex: number, topic: Topic} | null>(null);
   const [streamingContent, setStreamingContent] = useState<string>('');
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
+  const [searchInProgress, setSearchInProgress] = useState(false);
 
-  const handleSearch = async (query: string) => {
-    // Clear all previous state before starting new search
+  const resetState = () => {
+    console.log("Resetting state in useContentGeneration");
     setSelectedTopic(null);
     setStreamingContent('');
     setModules([]);
     setCurrentModuleIndex(0);
     setCurrentHistoryId(null);
+    setSearchInProgress(false); // Also reset the search in progress flag
+  };
+
+  const handleSearch = async (query: string) => {
+    // Prevent multiple concurrent searches
+    if (searchInProgress) {
+      console.log("Search already in progress, ignoring new search request");
+      return;
+    }
+    
+    setSearchInProgress(true);
+    
+    // Clear all previous state before starting new search
+    resetState();
     setIsLoading(true);
+    setLoadingStage('modules');
     
     try {
       const generatedModules = await generateModules(query);
       setModules(generatedModules.map(module => ({ ...module, topics: [] })));
       toast.success(`Found knowledge modules for "${query}"`);
-      setIsLoading(false);
       
+      setLoadingStage('topics');
       const updatedModules = [...generatedModules];
       updatedModules[0].topics = [];
       setModules(updatedModules);
@@ -62,6 +79,7 @@ export const useContentGeneration = () => {
       setModules([]);
     } finally {
       setIsLoading(false);
+      // Don't reset searchInProgress here as we want to keep it true until the search is fully completed
     }
   };
 
@@ -136,8 +154,15 @@ export const useContentGeneration = () => {
   };
 
   const handleBackToTopics = () => {
+    console.log("handleBackToTopics called in useContentGeneration hook");
     setSelectedTopic(null);
     setStreamingContent('');
+  };
+
+  const resetSearch = () => {
+    console.log("Resetting search state in useContentGeneration hook");
+    resetState();
+    setSearchInProgress(false);
   };
 
   const handleSelectHistory = (query: string, historyModules: Module[]) => {
@@ -168,6 +193,7 @@ export const useContentGeneration = () => {
 
   return {
     isLoading,
+    loadingStage,
     modules,
     currentModuleIndex,
     selectedTopic,
@@ -178,6 +204,8 @@ export const useContentGeneration = () => {
     handleSelectTopic,
     handleNextModule,
     handleBackToTopics,
-    handleSelectHistory
+    handleSelectHistory,
+    resetSearch, // Add this new function
+    searchInProgress // Also expose this state
   };
 };

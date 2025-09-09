@@ -46,12 +46,8 @@ const WelcomeScreen: FC<WelcomeScreenProps> = ({
               icon={topic.icon}
               title={topic.title}
               onClick={() => {
-                if (isAuthenticated) {
-                  onSearch(topic.title);
-                } else {
-                  setPendingSearch(topic.title);
-                  onLoginRequired();
-                }
+                // Allow searches without authentication
+                onSearch(topic.title);
               }}
             />
           ))}

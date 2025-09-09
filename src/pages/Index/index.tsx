@@ -8,6 +8,7 @@ import LearningPath from '@/components/LearningPath';
 import LoadingContent from '@/components/LoadingContent';
 import LoginModal from '@/components/LoginModal';
 import HistoryModal from '@/components/HistoryModal';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import WelcomeScreen from './WelcomeScreen';
 import ExploringView from './ExploringView';
 import NoResultsView from './NoResultsView';
@@ -26,6 +27,7 @@ const Index: FC = () => {
   // Content generation custom hook
   const {
     isLoading,
+    loadingStage,
     modules,
     currentModuleIndex,
     selectedTopic,
@@ -36,7 +38,9 @@ const Index: FC = () => {
     handleSelectTopic,
     handleNextModule,
     handleBackToTopics,
-    handleSelectHistory
+    handleSelectHistory,
+    resetSearch,
+    searchInProgress
   } = useContentGeneration();
   
   // Progress tracking custom hook
@@ -60,10 +64,12 @@ const Index: FC = () => {
   };
 
   const handleNewSearch = () => {
+    console.log("New search button clicked in Index component");
     setSearchPerformed(false);
     setShowLearningPath(false);
     setCompletedTopics({});
     setCurrentHistoryId(null);
+    resetSearch(); // Call the reset function from the hook
   };
 
   const handleToggleLearningPath = () => {
@@ -117,61 +123,72 @@ const Index: FC = () => {
   
   const renderContent = () => {
     if (selectedTopic !== null) {
+      console.log("Rendering TopicDetail with onBack function:", handleBackToTopics);
       return (
-        <TopicDetail 
-          topic={selectedTopic.topic} 
-          onBack={handleBackToTopics} 
-          streamingContent={streamingContent}
-          historyId={currentHistoryId}
-          moduleIndex={selectedTopic.moduleIndex}
-          topicIndex={selectedTopic.topicIndex}
-        />
+        <ErrorBoundary>
+          <TopicDetail 
+            topic={selectedTopic.topic} 
+            onBack={handleBackToTopics} 
+            streamingContent={streamingContent}
+            historyId={currentHistoryId}
+            moduleIndex={selectedTopic.moduleIndex}
+            topicIndex={selectedTopic.topicIndex}
+          />
+        </ErrorBoundary>
       );
     }
     
     if (isLoading) {
-      return <LoadingContent />;
+      return <LoadingContent stage={loadingStage} />;
     }
     
     if (searchPerformed && modules.length > 0) {
       return (
-        <ExploringView
-          modules={modules}
-          onSelectTopic={handleSelectTopicWithProgress}
-          currentModuleIndex={currentModuleIndex}
-          onNextModule={handleNextModule}
-          onToggleLearningPath={handleToggleLearningPath}
-        />
+        <ErrorBoundary>
+          <ExploringView
+            modules={modules}
+            onSelectTopic={handleSelectTopicWithProgress}
+            currentModuleIndex={currentModuleIndex}
+            onNextModule={handleNextModule}
+            onToggleLearningPath={handleToggleLearningPath}
+          />
+        </ErrorBoundary>
       );
     }
     
     if (searchPerformed && modules.length === 0 && !isLoading) {
       return (
-        <NoResultsView
-          onSearch={handleSearchWithState}
-          onLoginRequired={handleLoginRequired}
-        />
+        <ErrorBoundary>
+          <NoResultsView
+            onSearch={handleSearchWithState}
+            onLoginRequired={handleLoginRequired}
+          />
+        </ErrorBoundary>
       );
     }
     
     return (
-      <WelcomeScreen
-        onSearch={handleSearchWithState}
-        onLoginRequired={handleLoginRequired}
-        setPendingSearch={setPendingSearch}
-        isAuthenticated={isAuthenticated}
-      />
+      <ErrorBoundary>
+        <WelcomeScreen
+          onSearch={handleSearchWithState}
+          onLoginRequired={handleLoginRequired}
+          setPendingSearch={setPendingSearch}
+          isAuthenticated={isAuthenticated}
+        />
+      </ErrorBoundary>
     );
   };
   
   const renderLearningPath = () => {
     if (showLearningPath && modules.length > 0) {
       return (
-        <LearningPath 
-          modules={modules} 
-          currentModuleIndex={currentModuleIndex} 
-          onClose={() => setShowLearningPath(false)} 
-        />
+        <ErrorBoundary>
+          <LearningPath 
+            modules={modules} 
+            currentModuleIndex={currentModuleIndex} 
+            onClose={() => setShowLearningPath(false)} 
+          />
+        </ErrorBoundary>
       );
     }
     return null;

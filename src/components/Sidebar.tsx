@@ -114,7 +114,15 @@ const Sidebar: FC<SidebarProps> = ({
 
       <div className="p-3 border-b border-border/50">
         <button 
-          onClick={onNewSearch}
+          onClick={() => {
+            console.log("New Search button clicked in Sidebar");
+            if (onNewSearch) {
+              console.log("Calling onNewSearch function");
+              onNewSearch();
+            } else {
+              console.log("onNewSearch function is not defined");
+            }
+          }}
           className={cn(
             "flex items-center gap-2 w-full p-2",
             "hover:bg-accent/10 rounded-md transition-all text-base"
