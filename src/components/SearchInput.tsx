@@ -1,4 +1,3 @@
-
 import { FC, useState } from 'react';
 import { SearchIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -41,13 +40,12 @@ const SearchInput: FC<SearchInputProps> = ({ onSearch, onLoginRequired }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Explore a topic..."
-            className="w-full bg-card/30 backdrop-blur-sm border border-border/50 rounded-md py-3 px-4 pl-12 text-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full chipling-card py-4 px-4 pl-12 text-lg focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg"
           />
-          <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         </div>
         <Button 
           type="submit"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6 focus-ring"
         >
           Explore
         </Button>

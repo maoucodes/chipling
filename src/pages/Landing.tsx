@@ -1,13 +1,15 @@
-
 import { FC } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { SunIcon, MoonIcon } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
 
 const Landing: FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const handleGetStarted = async () => {
     if (!isAuthenticated) {
@@ -20,101 +22,110 @@ const Landing: FC = () => {
     navigate('/app');
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/95 dark:from-background dark:to-background/80">
       {/* Navigation */}
-      <nav className="container mx-auto px-4 py-6 flex items-center justify-between">
+      <nav className="container mx-auto px-container py-4 sm:py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="bg-white/10 rounded-md p-1.5 flex items-center justify-center">
+          <div className="bg-primary/10 rounded-md p-1.5 flex items-center justify-center">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span className="font-semibold text-xl">chipling</span>
+          <span className="font-bold text-xl">chipling</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
+            {theme === 'dark' ? (
+              <SunIcon className="h-5 w-5" />
+            ) : (
+              <MoonIcon className="h-5 w-5" />
+            )}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
           {!isAuthenticated ? (
-            <Button variant="outline" onClick={login}>Sign In</Button>
+            <Button variant="outline" onClick={login} className="hidden sm:flex">Sign In</Button>
           ) : (
-            <Button variant="outline" onClick={() => navigate('/app')}>Go to App</Button>
+            <Button variant="outline" onClick={() => navigate('/app')} className="hidden sm:flex">Go to App</Button>
           )}
           <Button onClick={handleGetStarted}>Get Started</Button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-20 flex flex-col items-center text-center">
-        <h1 className="text-5xl sm:text-6xl font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">Deep Dive Into Knowledge</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+      <div className="container mx-auto px-container py-16 sm:py-24 flex flex-col items-center text-center">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 max-w-3xl">Deep Dive Into Knowledge</h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mb-10">
           Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
         </p>
         <Button 
           size="lg" 
           onClick={handleGetStarted} 
-          className="px-8 py-6 text-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300"
+          className="px-8 py-6 text-lg rounded-full"
         >
           Start Exploring
         </Button>
       </div>
 
       {/* Features */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-container py-16">
         <h2 className="text-3xl font-bold mb-12 text-center">Why Choose Chipling?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <FeatureCard 
             title="Structured Learning"
             description="Topics are organized into modules and topics for progressive understanding."
             icon={<IconLayers />}
-            delay={0}
           />
           <FeatureCard 
             title="Track Progress"
             description="Keep track of your learning journey with automatic progress tracking."
             icon={<IconChart />}
-            delay={150}
           />
           <FeatureCard 
             title="Smart Recommendations"
             description="Get personalized recommendations for related topics to explore."
             icon={<IconBrain />}
-            delay={300}
           />
         </div>
       </div>
 
       {/* CTA Section */}
-      <div className="container mx-auto px-4 py-20">
-        <div className="bg-primary/10 rounded-2xl p-8 md:p-12 flex flex-col items-center text-center animate-in fade-in-50 duration-700">
-          <h2 className="text-3xl font-bold mb-6">Ready to expand your knowledge?</h2>
+      <div className="container mx-auto px-container py-16 sm:py-20">
+        <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-8 md:p-12 flex flex-col items-center text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to expand your knowledge?</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mb-8">
             Join thousands of learners who are discovering new topics and deepening their understanding every day.
           </p>
-          <Button size="lg" onClick={handleGetStarted}>
+          <Button size="lg" onClick={handleGetStarted} className="rounded-full">
             Get Started for Free
           </Button>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t border-border/50 mt-12">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <div className="bg-white/10 rounded-md p-1 flex items-center justify-center">
+      <footer className="container mx-auto px-container py-8 border-t border-border/50 mt-12 dark:border-border/30">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 rounded-md p-1 flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             <span className="text-sm">© 2025 Chipling. All rights reserved.</span>
           </div>
-          <div className="flex gap-6">
-            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
-            <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link>
-            <a href="/refund" className="text-sm text-muted-foreground hover:text-primary">Refund Policy</a>
-            <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</Link>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link>
+            <a href="/refund" className="text-sm text-muted-foreground hover:text-primary transition-colors">Refund Policy</a>
+            <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link>
           </div>
         </div>
       </footer>
@@ -126,19 +137,15 @@ interface FeatureCardProps {
   title: string;
   description: string;
   icon: React.ReactNode;
-  delay?: number;
 }
 
-const FeatureCard: FC<FeatureCardProps> = ({ title, description, icon, delay = 0 }) => {
+const FeatureCard: FC<FeatureCardProps> = ({ title, description, icon }) => {
   return (
-    <div 
-      className="bg-card border border-border/50 rounded-xl p-6 flex flex-col items-center text-center animate-in fade-in-50 slide-in-from-bottom-4 duration-700" 
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="bg-primary/10 p-3 rounded-full mb-4">
+    <div className="chipling-card-hover text-center bg-card dark:bg-card/70">
+      <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
     </div>
   );

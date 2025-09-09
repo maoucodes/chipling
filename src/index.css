@@ -2,113 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .animate-carousel {
-    animation: carousel 30s linear infinite;
-  }
-  
-  @keyframes carousel {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-}
-
-@layer components {
-  .popular-topic {
-    @apply p-4 bg-card/30 backdrop-blur-sm border border-border/50 rounded-md hover:bg-card/50 transition-all duration-300 hover:scale-105 flex items-center gap-3 min-w-[200px] max-w-[300px];
-  }
-  
-  .popular-topic-icon {
-    @apply text-xl transform transition-transform duration-300 group-hover:scale-110 flex-shrink-0;
-  }
-  
-  .popular-topic-title {
-    @apply text-sm font-medium overflow-hidden text-ellipsis;
-  }
-}
-
 @layer base {
   :root {
-    --background: 0 0% 5%;
-    --foreground: 210 40% 98%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --background: 0 0% 100%;
+    --foreground: 222 20% 10%;
+    
+    --card: 0 0% 98%;
+    --card-foreground: 222 20% 10%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
+    --popover-foreground: 222 20% 10%;
+    
+    --primary: 222 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 20% 95%;
+    --secondary-foreground: 222 20% 10%;
+    
+    --muted: 210 20% 92%;
+    --muted-foreground: 215 20% 50%;
+    
+    --accent: 210 20% 95%;
+    --accent-foreground: 222 20% 10%;
+    
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 222 100% 50%;
+    
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 222 20% 8%;
+    --foreground: 210 20% 98%;
+    
+    --card: 222 20% 12%;
+    --card-foreground: 210 20% 98%;
+    
+    --popover: 222 30% 10%;
+    --popover-foreground: 210 20% 98%;
+    
+    --primary: 210 100% 70%;
+    --primary-foreground: 222 20% 10%;
+    
+    --secondary: 222 20% 18%;
+    --secondary-foreground: 210 20% 98%;
+    
+    --muted: 222 20% 20%;
+    --muted-foreground: 215 20% 70%;
+    
+    --accent: 222 20% 18%;
+    --accent-foreground: 210 20% 98%;
+    
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 210 20% 98%;
+    
+    --border: 222 20% 25%;
+    --input: 222 20% 25%;
+    --ring: 212 100% 70%;
   }
 }
 
@@ -116,12 +70,13 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
+/* Custom animations */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -130,6 +85,17 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -144,24 +110,146 @@
   }
 }
 
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes carousel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Custom utilities */
 @layer utilities {
   .animate-fade-in {
-    animation: fade-in 0.5s ease-out forwards;
+    animation: fade-in 0.3s ease-out forwards;
+  }
+  
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out forwards;
   }
   
   .animate-scale-in {
-    animation: scale-in 0.3s ease-out forwards;
+    animation: scale-in 0.2s ease-out forwards;
+  }
+  
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-carousel {
+    animation: carousel 30s linear infinite;
+  }
+  
+  /* Responsive padding utilities */
+  .px-container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .py-container {
+    @apply py-4 sm:py-6 lg:py-8;
+  }
+  
+  /* Card styles */
+  .chipling-card {
+    @apply bg-card/80 backdrop-blur-sm border border-border rounded-lg p-4 transition-all duration-200;
+  }
+  
+  .chipling-card-hover {
+    @apply chipling-card hover:bg-card/90 hover:shadow-md;
+  }
+  
+  /* Focus styles for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-thumb {
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  
+  .scrollbar-thumb::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thumb::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thumb::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
   }
 }
 
-.chipling-card {
-  @apply bg-card/50 backdrop-blur-sm border border-border/50 rounded-md p-4 hover:bg-card/80 transition-all duration-200 cursor-pointer;
-}
-
-.chipling-sidebar {
-  @apply w-[240px] h-screen bg-sidebar/80 backdrop-blur-sm border-r border-border/50 flex flex-col;
-}
-
+/* Global styles */
 html, body {
-  @apply bg-[#070A0E] text-white dark;
+  @apply antialiased;
+}
+
+/* Custom scrollbar for WebKit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/30;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-primary/20 text-foreground;
+}
+
+/* Responsive typography */
+h1 {
+  @apply text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight;
+}
+
+h2 {
+  @apply text-2xl sm:text-3xl font-bold tracking-tight;
+}
+
+h3 {
+  @apply text-xl sm:text-2xl font-semibold tracking-tight;
+}
+
+h4 {
+  @apply text-lg sm:text-xl font-semibold tracking-tight;
+}
+
+/* Input and button focus states */
+input, button, textarea, select {
+  @apply focus-ring;
+}
+
+/* Remove default focus styles for elements that have custom focus handling */
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
 }

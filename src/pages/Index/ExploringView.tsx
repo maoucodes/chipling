@@ -1,4 +1,3 @@
-
 import { FC } from 'react';
 import { Module } from '@/types/knowledge';
 import { MapIcon } from 'lucide-react';
@@ -20,13 +19,13 @@ const ExploringView: FC<ExploringViewProps> = ({
   onToggleLearningPath
 }) => {
   return (
-    <div className="container mx-auto mt-auto px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Exploring Knowledge</h1>
+    <div className="container mx-auto mt-auto px-container">
+      <div className="flex justify-between items-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Exploring Knowledge</h1>
         <div className="flex gap-2">
           <button 
             onClick={onToggleLearningPath}
-            className="flex items-center gap-2 text-sm bg-primary/20 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/30 transition-colors"
+            className="flex items-center gap-2 text-sm bg-primary/10 border border-primary/20 rounded-md px-3 py-2 hover:bg-primary/20 transition-colors focus-ring"
           >
             <span>Learning Path</span>
             <MapIcon className="w-4 h-4" />

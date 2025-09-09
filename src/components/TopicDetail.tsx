@@ -1,4 +1,3 @@
-
 import { FC, useState, useEffect } from 'react';
 import { ArrowLeftIcon, BookmarkIcon, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -68,12 +67,12 @@ const TopicDetail: FC<TopicDetailProps> = ({
   const displayContent = streamingContent || topic.content;
 
   return (
-    <div className={`container mx-auto px-3 sm:px-4 lg:px-8 max-w-7xl mt-auto transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-3 sm:py-4 -mx-3 px-3 sm:-mx-4 sm:px-4 lg:-mx-8 lg:px-8 border-b border-border/50">
+    <div className={`container mx-auto px-container max-w-4xl mt-auto transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-3 sm:py-4 -mx-4 px-4 border-b border-border/50">
         <Button 
           variant="ghost" 
           size="sm" 
-          className="transition-all duration-300 hover:translate-x-[-4px]" 
+          className="transition-all duration-300 hover:translate-x-[-4px] focus-ring" 
           onClick={(e) => {
             console.log("Back button clicked in TopicDetail");
             e.preventDefault();
@@ -87,38 +86,38 @@ const TopicDetail: FC<TopicDetailProps> = ({
         </Button>
       </div>
 
-      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3 sm:p-4 lg:p-6 mt-3 sm:mt-4 mb-6 transition-all duration-300 hover:shadow-lg overflow-hidden">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-semibold">{topic.title}</h1>
+      <div className="chipling-card-hover mt-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">{topic.title}</h1>
           <div className="flex gap-2 self-end sm:self-auto">
-            <button className="p-2 rounded-full hover:bg-accent/20 transition-colors duration-300 hover:scale-110">
+            <button className="p-2 rounded-full hover:bg-accent/20 transition-colors duration-300 hover:scale-110 focus-ring">
               <BookmarkIcon className="w-5 h-5" />
             </button>
-            <button className="p-2 rounded-full hover:bg-accent/20 transition-colors duration-300 hover:scale-110">
+            <button className="p-2 rounded-full hover:bg-accent/20 transition-colors duration-300 hover:scale-110 focus-ring">
               <SearchIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {topic.relevance > 0 && (
-          <div className="mb-4 text-sm text-muted-foreground transition-opacity duration-300" style={{ animationDelay: '200ms' }}>
-            Relevance: {topic.relevance}
+          <div className="mb-4 text-sm text-muted-foreground">
+            Relevance: {topic.relevance}/10
           </div>
         )}
 
-        <div className="prose prose-invert max-w-none">
-          <p className="text-muted-foreground mb-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <div className="prose prose-invert max-w-none dark:prose-invert">
+          <p className="text-muted-foreground mb-6">
             {topic.description}
           </p>
           
-          <div className="text-foreground mb-8 animate-fade-in whitespace-pre-wrap" style={{ animationDelay: '400ms' }}>
+          <div className="text-foreground mb-8 whitespace-pre-wrap">
             {displayContent}
-            {streamingContent && <span className="ml-1 animate-pulse">▋</span>}
+            {streamingContent && <span className="ml-1 animate-pulse-subtle">▋</span>}
           </div>
 
           {!isLoading && topic.subtopics && topic.subtopics.length > 0 && (
-            <div className="mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
-              <h2 className="text-xl font-medium mb-4">Explore Deeper</h2>
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">Explore Deeper</h2>
               <div className="space-y-4">
                 {topic.subtopics.map((subtopic, index) => (
                   <SubtopicPanel 
@@ -126,7 +125,6 @@ const TopicDetail: FC<TopicDetailProps> = ({
                     subtopic={subtopic}
                     isExpanded={!!expandedSubtopics[index]}
                     onClick={() => toggleSubtopic(index)}
-                    animationDelay={600 + index * 100}
                   />
                 ))}
               </div>
@@ -134,11 +132,11 @@ const TopicDetail: FC<TopicDetailProps> = ({
           )}
 
           {!isLoading && topic.references && topic.references.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-border/50 animate-fade-in" style={{ animationDelay: '700ms' }}>
-              <h2 className="text-lg font-medium mb-2">References & Further Reading</h2>
-              <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+            <div className="mt-8 pt-6 border-t border-border/50">
+              <h2 className="text-lg font-bold mb-3">References & Further Reading</h2>
+              <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                 {topic.references.map((reference, index) => (
-                  <li key={index} className="animate-fade-in" style={{ animationDelay: `${800 + index * 100}ms` }}>{reference}</li>
+                  <li key={index} className="text-sm">{reference}</li>
                 ))}
               </ul>
             </div>
@@ -153,27 +151,25 @@ interface SubtopicPanelProps {
   subtopic: Subtopic;
   isExpanded: boolean;
   onClick: () => void;
-  animationDelay: number;
 }
 
-const SubtopicPanel: FC<SubtopicPanelProps> = ({ subtopic, isExpanded, onClick, animationDelay }) => {
+const SubtopicPanel: FC<SubtopicPanelProps> = ({ subtopic, isExpanded, onClick }) => {
   return (
     <div 
-      className="border border-border/50 rounded-md overflow-hidden bg-card/20 hover:bg-card/40 transition-all duration-300 opacity-0 animate-fade-in"
-      style={{ animationDelay: `${animationDelay}ms` }}
+      className="border border-border rounded-md overflow-hidden bg-card/20 hover:bg-card/40 transition-all duration-300"
     >
       <button 
-        className="w-full text-left p-3 sm:p-4 flex justify-between items-center"
+        className="w-full text-left p-4 flex justify-between items-center focus-ring"
         onClick={onClick}
       >
-        <h3 className="font-medium text-sm sm:text-base">{subtopic.title}</h3>
+        <h3 className="font-medium text-base">{subtopic.title}</h3>
         <ChevronIcon className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
       </button>
       
       {isExpanded && (
-        <div className="p-3 sm:p-4 pt-0 border-t border-border/50 animate-accordion-down">
+        <div className="p-4 pt-0 border-t border-border/50 animate-accordion-down">
           <p className="text-sm text-muted-foreground mb-4">{subtopic.description}</p>
-          <div className="text-sm">{subtopic.content}</div>
+          <div className="text-sm prose dark:prose-invert">{subtopic.content}</div>
         </div>
       )}
     </div>
