@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Module } from '@/types/knowledge';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 interface LearningPathProps {
   modules: Module[];
@@ -19,8 +20,23 @@ const LearningPath: FC<LearningPathProps> = ({
   onClose
 }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  
   // Calculate progress as a percentage
   const progressPercentage = ((currentModuleIndex + 1) / modules.length) * 100;
+  
+  const handleModuleSelect = (moduleIndex: number) => {
+    // First call the provided onModuleSelect callback if it exists
+    if (onModuleSelect) {
+      onModuleSelect(moduleIndex);
+    }
+    
+    // Navigate to the app page
+    navigate('/app');
+    
+    // Close the learning path modal
+    onClose();
+  };
   
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center overflow-hidden">
@@ -49,7 +65,7 @@ const LearningPath: FC<LearningPathProps> = ({
                   "w-full p-3 sm:p-4 border rounded-md flex items-center gap-3 cursor-pointer transition-colors focus-ring",
                   index === currentModuleIndex ? "bg-primary/10 border-primary/30" : "border-border/50 hover:bg-accent/10"
                 )}
-                onClick={() => onModuleSelect && onModuleSelect(index)}
+                onClick={() => handleModuleSelect(index)}
               >
                 <div className={cn(
                   "w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold",

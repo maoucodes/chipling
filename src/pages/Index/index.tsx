@@ -184,6 +184,11 @@ const Index: FC = () => {
             modules={modules} 
             currentModuleIndex={currentModuleIndex} 
             onClose={() => setShowLearningPath(false)} 
+            onModuleSelect={(moduleIndex) => {
+              // This would be used to change the current module
+              // For now, we'll just close the learning path
+              // The actual navigation to the module happens in the LearningPath component
+            }}
           />
         </ErrorBoundary>
       );
