@@ -31,9 +31,6 @@ const LearningPath: FC<LearningPathProps> = ({
       onModuleSelect(moduleIndex);
     }
     
-    // Navigate to the app page
-    navigate('/app');
-    
     // Close the learning path modal
     onClose();
   };

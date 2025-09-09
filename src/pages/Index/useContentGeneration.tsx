@@ -152,6 +152,15 @@ export const useContentGeneration = () => {
     setStreamingContent('');
   };
 
+  const handleNavigateToModule = async (moduleIndex: number) => {
+    if (moduleIndex >= 0 && moduleIndex < modules.length) {
+      setCurrentModuleIndex(moduleIndex);
+      await loadModuleTopics(moduleIndex);
+      
+      toast.success(`Navigating to Module ${moduleIndex + 1}`);
+    }
+  };
+
   const resetSearch = () => {
     resetState();
     setSearchInProgress(false);
@@ -194,7 +203,10 @@ export const useContentGeneration = () => {
     handleNextModule,
     handleBackToTopics,
     handleSelectHistory,
+    handleNavigateToModule,
     resetSearch, // Add this new function
     searchInProgress // Also expose this state
   };
 };
+
+export default useContentGeneration;
