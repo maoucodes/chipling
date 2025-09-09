@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Loader2, Plus, Edit3, Trash2, BookOpen } from 'lucide-react';
+import { Send, Loader2, Plus, Edit3, Trash2, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ const NotesPanel = ({ topicId, moduleId, topicTitle }: NotesPanelProps) => {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
 
   // Load notes when component mounts or when topic/module changes
   useEffect(() => {
@@ -108,6 +109,13 @@ const NotesPanel = ({ topicId, moduleId, topicTitle }: NotesPanelProps) => {
     }
   };
 
+  const toggleNoteExpansion = (noteId: string) => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [noteId]: !prev[noteId]
+    }));
+  };
+
   // Create context from notes for the chat
   const notesContext = notes.map(note => `Note: ${note.title}\n${note.content}`).join('\n\n');
 
@@ -170,10 +178,10 @@ const NotesPanel = ({ topicId, moduleId, topicTitle }: NotesPanelProps) => {
                 {notes.map((note) => (
                   <div 
                     key={note.id} 
-                    className="border border-border/50 rounded-lg p-3 hover:bg-accent/5 transition-colors"
+                    className="border border-border/50 rounded-lg hover:bg-accent/5 transition-colors"
                   >
                     {editingNoteId === note.id ? (
-                      <div className="space-y-2">
+                      <div className="p-3 space-y-2">
                         <Textarea
                           value={editingContent}
                           onChange={(e) => setEditingContent(e.target.value)}
@@ -195,14 +203,25 @@ const NotesPanel = ({ topicId, moduleId, topicTitle }: NotesPanelProps) => {
                       </div>
                     ) : (
                       <div>
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-medium">{note.title}</h4>
+                        <div 
+                          className="flex justify-between items-center p-3 cursor-pointer"
+                          onClick={() => toggleNoteExpansion(note.id)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {expandedNotes[note.id] ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                            <h4 className="font-medium">{note.title}</h4>
+                          </div>
                           <div className="flex gap-1">
                             <Button 
                               size="icon" 
                               variant="ghost" 
                               className="w-8 h-8"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setEditingNoteId(note.id);
                                 setEditingContent(note.content);
                               }}
@@ -213,16 +232,24 @@ const NotesPanel = ({ topicId, moduleId, topicTitle }: NotesPanelProps) => {
                               size="icon" 
                               variant="ghost" 
                               className="w-8 h-8"
-                              onClick={() => handleDeleteNote(note.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNote(note.id);
+                              }}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {new Date(note.updatedAt).toLocaleDateString()}
-                        </p>
-                        <p className="mt-2 text-sm whitespace-pre-wrap">{note.content}</p>
+                        
+                        {expandedNotes[note.id] && (
+                          <div className="px-3 pb-3 pt-0 border-t border-border/50">
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {new Date(note.updatedAt).toLocaleDateString()}
+                            </p>
+                            <p className="mt-2 text-sm whitespace-pre-wrap">{note.content}</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

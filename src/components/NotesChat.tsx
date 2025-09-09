@@ -43,17 +43,20 @@ const NotesChat = ({ notesContext, topicTitle }: NotesChatProps) => {
       const contextMessage = `I'm asking about the topic "${topicTitle || 'this topic'}". Here are my notes:\n\n${notesContext}\n\nPlease answer my question based on these notes: ${userMessage}`;
       
       // Stream the response token by token
+      let completeResponse = "";
       await streamChat(contextMessage, (token) => {
-        setStreamingMessage(prev => prev + token);
+        completeResponse += token;
+        setStreamingMessage(completeResponse);
       });
       
       // When streaming is complete, add the assistant message
       const assistantMessageId = `assistant-${Date.now()}`;
-      setMessages(prev => [...prev, { role: 'assistant', content: streamingMessage, id: assistantMessageId }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: completeResponse, id: assistantMessageId }]);
       setStreamingMessage('');
     } catch (error) {
       console.error('Error in chat:', error);
       toast.error('Failed to get a response. Please try again.');
+      setStreamingMessage('');
     } finally {
       setIsLoading(false);
     }

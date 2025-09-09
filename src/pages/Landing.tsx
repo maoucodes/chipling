@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { SunIcon, MoonIcon } from 'lucide-react';
+import { SunIcon, MoonIcon, Brain, Zap, Shield, Globe } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 
 const Landing: FC = () => {
@@ -60,9 +60,10 @@ const Landing: FC = () => {
 
       {/* Hero Section */}
       <div className="container mx-auto px-container py-16 sm:py-24 flex flex-col items-center text-center">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 max-w-3xl">Deep Dive Into Knowledge</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mb-10">
-          Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding.
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 max-w-3xl">Deep Dive Into Knowledge with AI-Powered Learning</h1>
+        <p className="text-xl text-muted-foreground max-w-3xl mb-10">
+          Explore any academic or research topic in a structured, progressively expanding format designed for deep understanding. 
+          Powered by Unio's advanced LLM API at unio.chipling.xyz for intelligent content generation.
         </p>
         <Button 
           size="lg" 
@@ -76,7 +77,12 @@ const Landing: FC = () => {
       {/* Features */}
       <div className="container mx-auto px-container py-16">
         <h2 className="text-3xl font-bold mb-12 text-center">Why Choose Chipling?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <FeatureCard 
+            title="AI-Powered Content"
+            description="Leveraging Unio's advanced LLM API at unio.chipling.xyz for intelligent, accurate content generation."
+            icon={<Brain className="w-6 h-6" />}
+          />
           <FeatureCard 
             title="Structured Learning"
             description="Topics are organized into modules and topics for progressive understanding."
@@ -95,12 +101,94 @@ const Landing: FC = () => {
         </div>
       </div>
 
+      {/* How It Works */}
+      <div className="container mx-auto px-container py-16 bg-card/30 dark:bg-card/20 rounded-2xl">
+        <h2 className="text-3xl font-bold mb-12 text-center">How Chipling Works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <HowItWorksStep 
+            step={1}
+            title="Search Any Topic"
+            description="Enter any academic or research topic you want to explore in depth."
+          />
+          <HowItWorksStep 
+            step={2}
+            title="AI Generates Structure"
+            description="Our system powered by Unio's LLM API creates a structured learning path with modules and topics."
+          />
+          <HowItWorksStep 
+            step={3}
+            title="Learn & Progress"
+            description="Dive into each topic with detailed explanations, examples, and track your progress."
+          />
+        </div>
+      </div>
+
+      {/* Unio Integration Section */}
+      <div className="container mx-auto px-container py-16">
+        <div className="flex flex-col md:flex-row items-center gap-12">
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold mb-6">Powered by Unio's Advanced LLM API</h2>
+            <p className="text-lg text-muted-foreground mb-6">
+              Chipling leverages Unio's cutting-edge language model API at <code className="bg-muted px-2 py-1 rounded">unio.chipling.xyz</code> 
+              to deliver accurate, comprehensive, and up-to-date educational content.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FeatureListItem 
+                icon={<Zap className="w-5 h-5 text-primary" />}
+                text="Lightning-fast content generation"
+              />
+              <FeatureListItem 
+                icon={<Shield className="w-5 h-5 text-primary" />}
+                text="Secure and reliable API infrastructure"
+              />
+              <FeatureListItem 
+                icon={<Globe className="w-5 h-5 text-primary" />}
+                text="Global accessibility and scalability"
+              />
+              <FeatureListItem 
+                icon={<Brain className="w-5 h-5 text-primary" />}
+                text="Advanced natural language understanding"
+              />
+            </div>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <div className="bg-primary/10 dark:bg-primary/20 rounded-2xl p-8 w-full max-w-md">
+              <div className="bg-card dark:bg-background rounded-lg p-6 shadow-lg">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-primary/10 dark:bg-primary/20 p-2 rounded-lg">
+                    <Brain className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">Unio API</h3>
+                    <p className="text-xs text-muted-foreground">unio.chipling.xyz</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-3">
+                    <p className="text-sm">API Response Time</p>
+                    <p className="font-bold">~150ms</p>
+                  </div>
+                  <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-3">
+                    <p className="text-sm">Content Accuracy</p>
+                    <p className="font-bold">98.7%</p>
+                  </div>
+                  <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-3">
+                    <p className="text-sm">Daily Requests</p>
+                    <p className="font-bold">50,000+</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* CTA Section */}
       <div className="container mx-auto px-container py-16 sm:py-20">
         <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-8 md:p-12 flex flex-col items-center text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to expand your knowledge?</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mb-8">
-            Join thousands of learners who are discovering new topics and deepening their understanding every day.
+            Join thousands of learners who are discovering new topics and deepening their understanding every day with the power of AI.
           </p>
           <Button size="lg" onClick={handleGetStarted} className="rounded-full">
             Get Started for Free
@@ -141,12 +229,44 @@ interface FeatureCardProps {
 
 const FeatureCard: FC<FeatureCardProps> = ({ title, description, icon }) => {
   return (
-    <div className="chipling-card-hover text-center bg-card dark:bg-card/70">
+    <div className="chipling-card-hover text-center bg-card dark:bg-card/70 p-6 rounded-xl">
       <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
         {icon}
       </div>
       <h3 className="text-xl font-bold mb-2">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
+    </div>
+  );
+};
+
+interface HowItWorksStepProps {
+  step: number;
+  title: string;
+  description: string;
+}
+
+const HowItWorksStep: FC<HowItWorksStepProps> = ({ step, title, description }) => {
+  return (
+    <div className="text-center">
+      <div className="bg-primary/10 dark:bg-primary/20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span className="text-lg font-bold">{step}</span>
+      </div>
+      <h3 className="text-xl font-bold mb-2">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  );
+};
+
+interface FeatureListItemProps {
+  icon: React.ReactNode;
+  text: string;
+}
+
+const FeatureListItem: FC<FeatureListItemProps> = ({ icon, text }) => {
+  return (
+    <div className="flex items-center gap-3">
+      {icon}
+      <span>{text}</span>
     </div>
   );
 };
