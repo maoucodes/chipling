@@ -1,9 +1,12 @@
 import { FC, useState, useEffect, memo } from 'react';
-import { ArrowLeftIcon, BookmarkIcon, SearchIcon } from 'lucide-react';
+import { ArrowLeftIcon, BookmarkIcon, SearchIcon, BookOpenIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Topic, Subtopic } from '@/types/knowledge';
 import LoadingTopicDetail from './LoadingTopicDetail';
 import { useHistory } from '@/contexts/HistoryContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveNote } from '@/services/notesService';
+import { toast } from 'sonner';
 
 interface TopicDetailProps {
   topic: Topic;
@@ -67,6 +70,8 @@ const TopicDetail: FC<TopicDetailProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const isLoading = !topic || (!topic.content && !streamingContent);
   const { saveTopicDetail } = useHistory();
+  const { user } = useAuth();
+  const [isSavingNote, setIsSavingNote] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -92,10 +97,6 @@ const TopicDetail: FC<TopicDetailProps> = ({
     }
   }, [topic.content, isLoading, historyId, moduleIndex, topicIndex, topic, saveTopicDetail]);
 
-  if (isLoading) {
-    return <LoadingTopicDetail />;
-  }
-
   const toggleSubtopic = (index: number) => {
     setExpandedSubtopics(prev => ({
       ...prev,
@@ -112,6 +113,26 @@ const TopicDetail: FC<TopicDetailProps> = ({
     onBack();
   };
 
+  const handleSaveToNotes = async () => {
+    if (!user?.uid || isSavingNote) return;
+    
+    setIsSavingNote(true);
+    try {
+      await saveNote(user.uid, {
+        title: `Notes on ${topic.title}`,
+        content: displayContent || '',
+        topicId: topicIndex !== undefined ? `${moduleIndex}-${topicIndex}` : undefined,
+        moduleId: moduleIndex !== undefined ? moduleIndex.toString() : undefined
+      });
+      toast.success('Saved to notes successfully');
+    } catch (error) {
+      console.error('Error saving to notes:', error);
+      toast.error('Failed to save to notes');
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6">
@@ -124,8 +145,21 @@ const TopicDetail: FC<TopicDetailProps> = ({
           Back to Topics
         </Button>
         
-        <h1 className="text-3xl font-bold mb-2">{topic.title}</h1>
-        <p className="text-muted-foreground">{topic.description}</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{topic.title}</h1>
+            <p className="text-muted-foreground">{topic.description}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleSaveToNotes}
+            disabled={isSavingNote || !user}
+            className="gap-2"
+          >
+            <BookOpenIcon className="w-4 h-4" />
+            {isSavingNote ? 'Saving...' : 'Save to Notes'}
+          </Button>
+        </div>
       </div>
 
       <div className="prose prose-invert max-w-none dark:prose-invert">

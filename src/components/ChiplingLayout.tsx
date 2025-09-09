@@ -1,4 +1,3 @@
-
 import React, { FC, ReactNode, useState } from 'react';
 import { cn } from '@/lib/utils';
 import Sidebar from '@/components/Sidebar';
@@ -7,6 +6,7 @@ import { MenuIcon } from 'lucide-react';
 import { Module, Topic } from '@/types/knowledge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useNavigate, useLocation } from 'react-router-dom';
+import NotesPanel from '@/components/NotesPanel';
 
 interface ChiplingLayoutProps {
   children: ReactNode;
@@ -34,6 +34,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
   completedTopics = {}
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -42,6 +43,11 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
 
   const handleSettingsClick = () => {
     navigate('/settings');
+    setSidebarOpen(false);
+  };
+
+  const handleNotesClick = () => {
+    setNotesPanelOpen(true);
     setSidebarOpen(false);
   };
 
@@ -59,6 +65,7 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
           onHistoryClick={onHistoryClick}
           onNewSearch={onNewSearch}
           onSettingsClick={handleSettingsClick}
+          onNotesClick={handleNotesClick}
           completedTopics={completedTopics}
         />
       </div>
@@ -90,7 +97,24 @@ const ChiplingLayout: FC<ChiplingLayoutProps> = ({
             }}
             onNewSearch={onNewSearch}
             onSettingsClick={handleSettingsClick}
+            onNotesClick={handleNotesClick}
             completedTopics={completedTopics}
+          />
+        </SheetContent>
+      </Sheet>
+      
+      {/* Notes Panel */}
+      <Sheet open={notesPanelOpen} onOpenChange={setNotesPanelOpen}>
+        <SheetContent 
+          side="right" 
+          className="p-0 w-[90vw] sm:w-96 max-w-md z-50"
+        >
+          <NotesPanel 
+            topicId={currentTopicIndices ? `${currentTopicIndices.moduleIndex}-${currentTopicIndices.topicIndex}` : undefined}
+            moduleId={currentModuleIndex !== undefined ? currentModuleIndex.toString() : undefined}
+            topicTitle={currentTopicIndices && modules && modules[currentTopicIndices.moduleIndex] 
+              ? modules[currentTopicIndices.moduleIndex].topics[currentTopicIndices.topicIndex]?.title 
+              : undefined}
           />
         </SheetContent>
       </Sheet>

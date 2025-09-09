@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, ReactNode, useMemo, memo } from 'react';
-import { BookmarkIcon, HistoryIcon, LayersIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon, SettingsIcon, SunIcon, MoonIcon } from 'lucide-react';
+import { BookmarkIcon, HistoryIcon, LayersIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon, SettingsIcon, SunIcon, MoonIcon, BookOpenIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +18,7 @@ interface SidebarProps {
   onHistoryClick?: () => void;
   onNewSearch?: () => void;
   onSettingsClick?: () => void;
+  onNotesClick?: () => void;
   completedTopics?: Record<string, boolean>;
 }
 
@@ -262,6 +263,7 @@ const Sidebar: FC<SidebarProps> = ({
   onHistoryClick,
   onNewSearch,
   onSettingsClick,
+  onNotesClick,
   completedTopics = {}
 }) => {
   const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
@@ -404,7 +406,7 @@ const Sidebar: FC<SidebarProps> = ({
         </div>
 
         <nav className="mt-6 px-3">
-          <SidebarItem icon={<BookmarkIcon className="w-5 h-5" />} label="Notes" />
+          <SidebarItem icon={<BookmarkIcon className="w-5 h-5" />} label="Notes" onClick={onNotesClick} />
           <SidebarItem 
             icon={<HistoryIcon className="w-5 h-5" />}
             label="History" 
